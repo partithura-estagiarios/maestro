@@ -25,12 +25,11 @@ onMounted(async () => {
       // Salva o token do GitHub no cookie
       const githubToken = useCookie('token', { maxAge: 60 * 60 * 24 * 7 }) // 1 semana
       githubToken.value = response.token
-      console.log("Token validado: ",githubToken.value)
       // Redireciona para dashboard
       try {
         router.push('/dashboard')
       } catch (err) {
-        console.log("Houve um erro: ",err)
+        console.error("Houve um erro: ",err)
       }
     } catch (error) {
       console.error('Erro na autenticação:', error)

@@ -5,7 +5,7 @@ export const appStore = defineStore("appStore", {
     userInfo: {},
     token: "",
     cards: [],
-    projects:[],
+    projects: [],
   }),
   getters: {
     getCurrentUserInfo: (state) => state.userInfo,
@@ -13,7 +13,7 @@ export const appStore = defineStore("appStore", {
     getCardDeck: (state) => state.cards,
     getProjects: (state) => state.projects,
     getActiveProject: (state) => {
-        return state.projects?.find(p=>p.isActive)||''
+      return state.projects?.find((p) => p.isActive) || "";
     },
   },
   actions: {
@@ -23,26 +23,54 @@ export const appStore = defineStore("appStore", {
     updateCurrentToken(v) {
       this.token = v;
     },
-    async updateUser() {
-      const githubToken = useCookie("token");
-      if (!githubToken.value) {
+    async updateUser(token) {
+      if (!token) {
         this.updateCurrentToken(null);
-        throw new Error("Nenhum token disponível.");
+        this.logout();
+        return false;
       }
 
       try {
+        console.log("TENTANDO LOGAR: ", token);
         const user = await $fetch("/api/user/github", {
           headers: {
-            Authorization: `Bearer ${githubToken.value}`,
+            Authorization: `Bearer ${token}`,
           },
         });
-        this.updateCurrentUserInfo(user);
-        this.updateCurrentToken(githubToken.value);
-        return user;
+        console.log("USER:", user);
+        if (user.id) {
+          this.updateCurrentUserInfo(user);
+          this.updateCurrentToken(token);
+          return user;
+        } else {
+          return false;
+        }
       } catch (error) {
         console.error("Erro ao buscar usuário:", error);
-        throw error;
+        return false;
       }
+    },
+    async checkToken(token) {
+        console.log("TOKENTOKENTOKEN",token)
+
+      const user = await $fetch("/api/user/github", {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      if(user.id){
+        this.userInfo = user;
+      }
+      return user;
+    },
+    logout() {
+      const token = useCookie("token");
+      token.value = null;
+      this.userInfo = {};
+      this.token = "";
+      this.cards = [];
+      this.projects = [];
     },
     //Cartas
     async fetchCardDeck() {
@@ -57,15 +85,13 @@ export const appStore = defineStore("appStore", {
           method: "GET",
           headers: {
             Authorization: `Bearer ${githubToken.value}`,
-            username: this.getCurrentUserInfo.login
-          }
+            username: this.getCurrentUserInfo.login,
+          },
         });
-        console.log("GET Cards: ",newCardResult)
-        this.cards = newCardResult
+        this.cards = newCardResult;
         return newCardResult;
       } catch (error) {
-        console.error("Erro ao criar carta:", error);
-        throw error;
+        return false
       }
     },
     updateCardDeck(v) {
@@ -83,11 +109,10 @@ export const appStore = defineStore("appStore", {
           method: "POST",
           headers: {
             Authorization: `Bearer ${githubToken.value}`,
-            username: this.getCurrentUserInfo.login
+            username: this.getCurrentUserInfo.login,
           },
           body: v,
         });
-        console.log("Result: ",newCardResult)
         return newCardResult.data;
       } catch (error) {
         console.error("Erro ao atualizar carta:", error);
@@ -106,11 +131,10 @@ export const appStore = defineStore("appStore", {
           method: "POST",
           headers: {
             Authorization: `Bearer ${githubToken.value}`,
-            username: this.getCurrentUserInfo.login
+            username: this.getCurrentUserInfo.login,
           },
           body: v,
         });
-        console.log("Result: ",newCardResult)
         return newCardResult.data;
       } catch (error) {
         console.error("Erro ao criar carta:", error);
@@ -129,13 +153,12 @@ export const appStore = defineStore("appStore", {
           method: "POST",
           headers: {
             Authorization: `Bearer ${githubToken.value}`,
-            username: this.getCurrentUserInfo.login
+            username: this.getCurrentUserInfo.login,
           },
           body: {
-            value:v
+            value: v,
           },
         });
-        console.log("Result: ",newCardResult)
         return newCardResult;
       } catch (error) {
         console.error("Erro ao excluir carta:", error);
@@ -150,19 +173,20 @@ export const appStore = defineStore("appStore", {
         throw new Error("Nenhum token disponível.");
       }
       try {
+        console.log("Autorizando com o username: ",this.getCurrentUserInfo.login)
         const projects = await $fetch("/api/projects/read", {
           method: "GET",
           headers: {
             Authorization: `Bearer ${githubToken.value}`,
-            username: this.getCurrentUserInfo.login
-          }
+            username: this.getCurrentUserInfo.login,
+          },
         });
-        console.log("GET projects: ",projects)
-        this.projects = projects
+        console.log("Projects: ",projects)
+        this.projects = projects;
         return projects;
       } catch (error) {
-        console.error("Erro ao carregar projects:", error);
-        throw error;
+        console.log("Erro chamando projetos: ",error.message)
+        return []
       }
     },
     async updateProject(v) {
@@ -177,7 +201,29 @@ export const appStore = defineStore("appStore", {
           method: "POST",
           headers: {
             Authorization: `Bearer ${githubToken.value}`,
-            username: this.getCurrentUserInfo.login
+            username: this.getCurrentUserInfo.login,
+          },
+          body: v,
+        });
+        return updatedProject.data;
+      } catch (error) {
+        console.error("Erro ao atualizar projeto:", error);
+        throw error;
+      }
+    },
+    async updateOtherProjects(v) {
+      const githubToken = useCookie("token");
+      if (!githubToken.value) {
+        this.updateCurrentToken(null);
+        throw new Error("Nenhum token disponível.");
+      }
+
+      try {
+        const updatedProject = await $fetch("/api/projects/deactivate", {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${githubToken.value}`,
+            username: this.getCurrentUserInfo.login,
           },
           body: v,
         });
@@ -199,7 +245,7 @@ export const appStore = defineStore("appStore", {
           method: "POST",
           headers: {
             Authorization: `Bearer ${githubToken.value}`,
-            username: this.getCurrentUserInfo.login
+            username: this.getCurrentUserInfo.login,
           },
           body: v,
         });
@@ -221,13 +267,12 @@ export const appStore = defineStore("appStore", {
           method: "POST",
           headers: {
             Authorization: `Bearer ${githubToken.value}`,
-            username: this.getCurrentUserInfo.login
+            username: this.getCurrentUserInfo.login,
           },
           body: {
-            number:v
+            number: v,
           },
         });
-        console.log("Result: ",deletedProject)
         return deletedProject;
       } catch (error) {
         console.error("Erro ao excluir carta:", error);

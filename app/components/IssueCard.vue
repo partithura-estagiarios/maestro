@@ -22,7 +22,6 @@ const props = defineProps({
     }
 })
 function viewIssue() {
-    console.log("open the issue")
     emits("click",props.issue)
 }
 

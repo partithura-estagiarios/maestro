@@ -1,5 +1,6 @@
 <template>
     <v-container>
+        <ApplicationUserToolbar />
         <!-- <v-app-bar height="48"> -->
             <!-- <NuxtLink to="/dashboard">Dashboard</NuxtLink> -->
             <!-- <NuxtLink to="/profile">Perfil</NuxtLink> -->
@@ -13,5 +14,9 @@
 </template>
 
 <script setup>
-
+// import { appStore } from '#imports';
+// const authStore = appStore()
+// onBeforeMount(async ()=>{
+//     await authStore.updateUser()
+// })
 </script>

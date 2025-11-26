@@ -6,16 +6,25 @@
                     <template #title>
                         Histórias aguardando seu voto
                     </template>
-                    <v-text-field v-if="isManagement" label="Query" v-model="query" />
+                    <v-text-field v-if="isManagement" label="Query" v-model="query" hide-details density="compact"
+                        @update:model-value="updateQuery()" />
+                    <template #append>
+                        <v-tooltip location="top">
+                            <template #activator="{props}">
+                                <v-btn v-bind="props" icon="mdi-refresh" @click="loadIssues()"></v-btn>
+                            </template>
+                            Recarregar conteúdo
+                        </v-tooltip>
+                    </template>
                 </v-toolbar>
             </v-card-title>
             <v-card-text class="scrollable-content">
-                <v-row v-if="!loading && issues?.length">
+                <v-skeleton-loader v-if="loading" width="100%" height="240px" />
+                <v-row v-else-if="issues?.length">
                     <IssueCard v-for="issue in issues" :key="issue.id" :issue="issue" @click="viewIssue" />
                 </v-row>
-                <v-skeleton-loader v-else-if="loading" width="100%" height="100vh" />
-                <div class="no-results" v-else>
-                    <div @click="testLink" :class="{clickable: isManagement}">
+                <div v-else class="no-results">
+                    <div @click="testLink" :class="{ clickable: isManagement }">
                         <h3>{{ noResultsMessage }}</h3>
                         <h5>{{ noResultsHint }}</h5>
                     </div>
@@ -23,6 +32,9 @@
             </v-card-text>
             <v-card-actions>
                 <v-spacer />
+                <v-spacer />
+                <v-select max-width="150px" label="Itens por página" v-model="paginationSize" :items="paginationSizes"
+                    hide-details density="compact" />
                 <div class="controls">
                     <div class="navigation-buttons">
                         <v-btn variant="outlined" :loading="loading && prevArrow" :disabled="!prevArrow"
@@ -33,7 +45,6 @@
                             icon="mdi-arrow-right" @click="loadNextPage" />
                     </div>
                 </div>
-                <v-spacer />
             </v-card-actions>
         </v-card>
         <IssueModal v-model="showIssueModal" :issue="selectedIssue" @confirmVote="confirmVote" />
@@ -45,6 +56,8 @@ import { appStore, useIssuesStore } from '#imports'
 const authStore = appStore();
 const issuesStore = useIssuesStore()
 const loading = ref(true)
+const paginationSizes = ref([12, 24, 32])
+const paginationSize = ref(12)
 const isManagement = computed(() => {
     return authStore.getCurrentUserInfo.isManagement
 })
@@ -52,7 +65,9 @@ definePageMeta({
     layout: 'app',
 })
 
-const user = ref(null)
+const user = computed(() => {
+    return authStore.getCurrentUserInfo
+})
 const issues = computed(() => {
     return issuesStore.getCurrentIssues
 })
@@ -70,21 +85,14 @@ function loadPrevPage() {
     })
 }
 
-function testLink(){
-    if(isManagement.value){
+function testLink() {
+    if (isManagement.value) {
         navigateTo('/configuration')
     }
 }
 
-onMounted(async () => {
-    try {
-        user.value = await authStore.updateUser()
-        await authStore.fetchCardDeck()
-        await loadIssues()
-    } catch (error) {
-        console.error('Erro ao carregar dados do usuário:', error)
-        // Opcional: redirecionar para login
-    }
+onMounted(() => {
+    loadIssues()
 })
 async function confirmVote(issue) {
     await issuesStore.setIssueVote(issue)
@@ -93,7 +101,7 @@ async function confirmVote(issue) {
 const showIssueModal = ref(false)
 const selectedIssue = ref()
 const noResultsMessage = computed(() => {
-    return authStore.getActiveProject.number ? 'Não há tasks para votação.' : 'Não há projeto ativo no momento.'
+    return authStore.getActiveProject.number ? 'Não há tasks para votação ou o filtro não retornou nenhuma task.' : 'Não há projeto ativo no momento.'
 })
 const noResultsHint = computed(() => {
     return authStore.getCurrentUserInfo.isManagement ? 'Clique aqui para abrir a página de configurações.' : 'Aguarde um administrador do projeto configurar um projeto ativo.'
@@ -112,29 +120,63 @@ function viewIssue(issue) {
     showIssueModal.value = true
 }
 
-const query = computed(() => {
-    return authStore.getActiveProject.query
+const query = ref('');
+const activeProject = computed(() => {
+    return authStore.getActiveProject
+})
+const debounceUpdate = ref()
+
+async function updateQuery() {
+    clearTimeout(debounceUpdate.value)
+    debounceUpdate.value = setTimeout(async () => {
+        loading.value = true
+        await authStore.updateProject({
+            ...activeProject.value,
+            query: query.value
+        })
+        loading.value = false
+        loadIssues();
+    }, 1000)
+}
+
+watch(paginationSize, () => {
+    loadIssues()
 })
 
-async function loadIssues(direction = "") {
+function loadIssues(direction = "") {
     loading.value = true
-    await authStore.fetchProjects();
-    if (authStore.getActiveProject.number) {
-        try {
-            const filters = {
-                org: "partithura",
-                projectNumber: authStore.getActiveProject.number,
-                paginationSize: 12,//ver isso
-                q: query.value
-            }
-            await issuesStore.fetchIssues(filters, direction)
-        } catch (error) {
-            alert('Erro ao buscar issues: ' + error.message)
-        } finally {
-            loading.value = false
-        }
+    let promises = []
+    if (!authStore.getCurrentUserInfo.login) {
+        const token = useCookie('token').value
+        promises.push(authStore.checkToken(token))
     }
-    loading.value = false
+    Promise.all(promises)
+        .then(() => {
+            let fetchPromises = []
+            authStore.fetchProjects()
+                .then(() => {
+                    query.value = authStore.getActiveProject.query
+                    if (authStore.getActiveProject.number) {
+                        const filters = {
+                            org: "partithura",
+                            projectNumber: authStore.getActiveProject.number,
+                            paginationSize: paginationSize.value,//ver isso
+                            q: query.value
+                        }
+                        fetchPromises = [
+                            authStore.fetchCardDeck(),
+                            issuesStore.fetchIssues(filters, direction)
+                        ]
+                        Promise.all(fetchPromises)
+                            .finally(() => {
+                                loading.value = false
+                            })
+                    }
+                })
+        }).catch(error => {
+            window.alert(error.message)
+            loading.value = false
+        })
 }
 </script>
 
@@ -148,7 +190,7 @@ async function loadIssues(direction = "") {
     font-size: 1.5rem;
 }
 
-.clickable{
+.clickable {
     cursor: pointer;
     border: 1px solid white;
     border-radius: 12px;

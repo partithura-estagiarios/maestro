@@ -1,42 +1,44 @@
 import { defineStore } from "pinia";
+import { appStore } from "#imports";
+
 function parseLinkHeaderManually(linkHeader) {
-    const links = {};
-    const parts = linkHeader.split(',');
+  const links = {};
+  const parts = linkHeader.split(",");
 
-    parts.forEach(part => {
-        const match = part.match(/<([^>]+)>;\s*(.*)/);
-        if (!match) return;
+  parts.forEach((part) => {
+    const match = part.match(/<([^>]+)>;\s*(.*)/);
+    if (!match) return;
 
-        const rawUrl = match[1];
-        const paramsStr = match[2];
-        const params = {};
+    const rawUrl = match[1];
+    const paramsStr = match[2];
+    const params = {};
 
-        paramsStr.split(';').forEach(param => {
-            const paramMatch = param.trim().match(/([^=]+)="([^"]+)"/);
-            if (paramMatch) {
-                params[paramMatch[1]] = paramMatch[2];
-            }
-        });
-
-        // Extrai os parâmetros da URL (query string)
-        const urlObject = new URL(rawUrl, 'http://example.com'); // base fictícia para evitar erro
-        const urlParams = {};
-        for (const [key, value] of urlObject.searchParams) {
-            urlParams[key] = value;
-        }
-
-        // Monta o objeto final com `url` e `urlParams`
-        if (params.rel) {
-            links[params.rel] = {
-                ...params,
-                url: {
-                    href: rawUrl,
-                    params: urlParams
-                }
-            };
-        }
+    paramsStr.split(";").forEach((param) => {
+      const paramMatch = param.trim().match(/([^=]+)="([^"]+)"/);
+      if (paramMatch) {
+        params[paramMatch[1]] = paramMatch[2];
+      }
     });
-    return links;
+
+    // Extrai os parâmetros da URL (query string)
+    const urlObject = new URL(rawUrl, "http://example.com"); // base fictícia para evitar erro
+    const urlParams = {};
+    for (const [key, value] of urlObject.searchParams) {
+      urlParams[key] = value;
+    }
+
+    // Monta o objeto final com `url` e `urlParams`
+    if (params.rel) {
+      links[params.rel] = {
+        ...params,
+        url: {
+          href: rawUrl,
+          params: urlParams,
+        },
+      };
+    }
+  });
+  return links;
 }
 export const useIssuesStore = defineStore("issuesStore", {
   state: () => {
@@ -61,11 +63,12 @@ export const useIssuesStore = defineStore("issuesStore", {
       this.links = v;
     },
     async fetchIssues(filters, pagination = null) {
+      const user = appStore().getCurrentUserInfo.login;
       let resolvedDirection;
       if (pagination?.direction) {
         pagination.direction == "next"
-          ? (resolvedDirection = {after:pagination.id})
-          : (resolvedDirection = {before:pagination.id});
+          ? (resolvedDirection = { after: pagination.id })
+          : (resolvedDirection = { before: pagination.id });
       }
       const githubToken = useCookie("token");
       if (!githubToken.value) {
@@ -78,6 +81,7 @@ export const useIssuesStore = defineStore("issuesStore", {
           headers: {
             Authorization: `Bearer ${githubToken.value}`,
             "Content-Type": "application/json",
+            username: user,
           },
           body: { ...filters, ...resolvedDirection },
         });
@@ -92,6 +96,7 @@ export const useIssuesStore = defineStore("issuesStore", {
       }
     },
     async setIssueVote(issue) {
+      const user = appStore().getCurrentUserInfo.login;
       const githubToken = useCookie("token");
       if (!githubToken.value) {
         throw new Error("Nenhum token disponível.");
@@ -103,6 +108,7 @@ export const useIssuesStore = defineStore("issuesStore", {
           headers: {
             Authorization: `Bearer ${githubToken.value}`,
             "Content-Type": "application/json",
+            username: user,
           },
           body: issue,
         });
@@ -113,6 +119,7 @@ export const useIssuesStore = defineStore("issuesStore", {
       }
     },
     async fetchCurrentIssue(issueId) {
+      const user = appStore().getCurrentUserInfo.login;
       const githubToken = useCookie("token");
       if (!githubToken.value) {
         throw new Error("Nenhum token disponível.");
@@ -123,9 +130,37 @@ export const useIssuesStore = defineStore("issuesStore", {
           headers: {
             Authorization: `Bearer ${githubToken.value}`,
             "Content-Type": "application/json",
+            username: user,
           },
           query: {
             issueId: issueId,
+          },
+        });
+        return response;
+      } catch (error) {
+        return `Erro na requisição: ${error}`;
+      }
+    },
+    async updateIssueEffort({ issue, value }) {
+      const authStore = appStore();
+      const user = authStore.getCurrentUserInfo.login
+      const activeProject = authStore.getActiveProject
+      const githubToken = useCookie("token");
+      if (!githubToken.value) {
+        throw new Error("Nenhum token disponível.");
+      }
+      try {
+        const response = await $fetch("/api/gitIssues/update", {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${githubToken.value}`,
+            "Content-Type": "application/json",
+            username: user,
+          },
+          body: {
+            issueNumber:issue.content.number, 
+            projectNumber:activeProject.number, 
+            dificuldade:value
           },
         });
         return response;

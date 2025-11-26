@@ -1,40 +1,33 @@
 import mongoose from "mongoose";
-import Card from "~~/server/models/card.model";
+import Project from "~~/server/models/project.model";
 const config = useRuntimeConfig();
 
-const {
-  mongodbURL,
-  mongodbPassword,
-  mongodbUsername,
-  mongodbDatabase,
-  mongodbAuthSource,
-} = config;
+const { mongodbURL, mongodbPassword, mongodbUsername, mongodbDatabase, mongodbAuthSource} = config;
 
 export default defineEventHandler(async (event) => {
   const connectionString = `mongodb://${mongodbUsername}:${mongodbPassword}@${mongodbURL}/${mongodbDatabase}?authSource=${mongodbAuthSource}`;
   await mongoose.connect(connectionString);
-  // Obter o token do header Authorization
-  const body = await readBody(event);
 
+  const body = await readBody(event);
   try {
-    const exists = await Card.exists({ value: body.value });
+    const exists = await Project.exists({ number: body.number });
     if (!exists) {
       throw createError({
         statusCode: 400,
-        message: "Carta não encontrada",
+        message: "Projeto não encontrado",
       });
     } else {
-      const newCard = Card.findOneAndUpdate(
+      const newProject = Project.updateMany(
         {
-          value: body.value,
+          number: {
+            $ne: body.number
+          },
         },
         {
-          minimumValue: body.minimumValue,
-          maximumValue: body.maximumValue,
-          color: body.color,
+          $set: { isActive:false }
         }
       );
-      return newCard;
+      return newProject;
     }
   } catch (error) {
     throw createError({

@@ -42,7 +42,7 @@ export default defineEventHandler(async (event) => {
         }
       );
     } catch (groupError) {
-      console.log("GroupError:",groupError)
+      console.error("GroupError:",groupError)
       teamResponse = false
     }
 

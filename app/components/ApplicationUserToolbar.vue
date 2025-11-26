@@ -62,8 +62,7 @@ const isManagement = computed(() => {
 
 const logout = () => {
     // Remove o token
-    const token = useCookie('token')
-    token.value = null
+    authStore.logout()
 
     // Redireciona para login
     navigateTo('/login')

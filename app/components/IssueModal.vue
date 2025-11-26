@@ -3,44 +3,54 @@
         <v-card>
             <v-toolbar>
                 <template #title>
-                    <div v-html="title" />
+                    <span class="issue-link">
+                        <span v-html="title" class="mr-2" />
+                        <a :href="issueURL" target="_blank">#{{ issue.content.number }}</a>
+                    </span>
                 </template>
                 <template #append>
                     <v-icon icon="mdi-close" @click="closeModal"></v-icon>
                 </template>
             </v-toolbar>
-            <v-card-text>
-                <v-card>
-                    <v-card-text>
-                        <div v-html="body"></div>
+            <v-card-text class="scrollable">
+                <v-card variant="outlined" class="mb-4">
+                    <v-card-text class="px-6">
+                        <div v-html="body" />
                     </v-card-text>
                 </v-card>
-                <CardDeck :cantVote="cantVote" :loading="loading" v-model="selectedCard" />
+                <CardDeck ref="cardDeck" :votes="databaseIssue?.votes" :cantVote="cantVote" :loading="loading"
+                    v-model="selectedCard" />
             </v-card-text>
             <v-card-actions>
-                <v-btn :href="issueURL" target="_blank">Ver no GitHub</v-btn>
+                <v-btn :href="issueURL" target="_blank">Issue número #{{ issue.content.number }}</v-btn>
                 <v-spacer />
-                <v-btn :disabled="cantVote" @click="confirmVote" color="success" variant="tonal">Confirmar voto</v-btn>
+                <v-btn :disabled="cantVote || loading" :loading="loading" @click="confirmVote" color="success"
+                    variant="tonal">{{
+                        buttonText
+                    }}</v-btn>
             </v-card-actions>
         </v-card>
     </v-dialog>
 </template>
 <script setup>
 import { appStore, useIssuesStore } from '#imports'
+import MarkdownIt from 'markdown-it';
 const authStore = appStore()
 const issuesStore = useIssuesStore()
+const md = new MarkdownIt();
 const props = defineProps({
     issue: {
         type: Object,
         default: () => { }
     }
 })
-const cantVote = computed(()=>{
-    return authStore.getCardDeck.length<=1
+const cantVote = computed(() => {
+    return authStore.getCardDeck.length <= 1 || !isReady.value
 })
 const emits = defineEmits(["confirmVote"])
 const model = defineModel({ type: Boolean })
 
+const cardDeck = ref()
 const selectedCard = ref(null)
 const databaseIssue = ref()
 const loading = ref(false)
@@ -50,7 +60,7 @@ const title = computed(() => {
     }).value?.raw
 })
 const body = computed(() => {
-    return props.issue?.content?.body
+    return md.render(props.issue?.content?.body)
 })
 const issueURL = computed(() => {
     return props.issue?.content?.html_url
@@ -62,20 +72,48 @@ function closeModal() {
     selectedCard.value = null
     model.value = false
 }
+const buttonText = computed(() => {
+    return user.value.isManagement ? "Definir Dificuldade Consolidada" : "Confirmar voto"
+})
+const isReady = computed(() => {
+    if (user.value.isManagement) {
+        return cardDeck.value?.result?.isFinal
+    }
+    return true
+})
 
 function confirmVote() {
     //verificar se o usuário é management e decidir se salva no git ou no mongo
-    emits("confirmVote", {
-        issue: props.issue,
-        vote: selectedCard.value,
-        user: user.value
-    })
-    closeModal()
+    loading.value = true
+    if (user.value.isManagement && typeof cardDeck.value?.result?.isFinal) {
+        issuesStore.updateIssueEffort({
+            issue: props.issue,
+            value: Number(cardDeck.value?.result?.value)
+        })
+            .then(r => {
+                if (r) {
+                    closeModal()
+                }
+            })
+            .catch(e => {
+                console.error(e)
+            }).finally(() => {
+                loading.value = false
+            })
+    } else if (authStore) {
+        emits("confirmVote", {
+            issue: props.issue,
+            vote: selectedCard.value,
+            user: user.value
+        })
+        loading.value = false
+        closeModal()
+    }
 }
 
 watch(model, async (n, o) => {
     if (n && !o) {
-        loading.value=true
+        loading.value = true
         databaseIssue.value = await issuesStore.fetchCurrentIssue(props.issue.id)
         if (databaseIssue.value) {
             const i = databaseIssue.value.votes.findIndex(vote => {
@@ -86,7 +124,20 @@ watch(model, async (n, o) => {
             }
 
         }
-        loading.value=false
+        loading.value = false
     }
 })
 </script>
+<style lang="scss" scoped>
+.issue-link {
+    font-size: 1.75rem;
+    a{
+        color: gray;
+        text-decoration: none;
+    }
+}
+.scrollable{
+    max-height: calc(100vh - 100px);
+    overflow-y: scroll;
+}
+</style>

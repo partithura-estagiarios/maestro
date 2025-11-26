@@ -1,7 +1,7 @@
 <template>
-    <v-card>
+    <v-card :loading="loading" :disabled="loading">
         <v-card-title>
-            <v-tabs v-model="tab" color="primary">
+            <v-tabs :disabled="loading" v-model="tab" color="primary">
                 <v-tab v-for="project in projects" :value="project.number" :key="project.number">
                     <v-icon class="mr-2" :color="project.isActive ? 'success' : 'grey'"
                         :icon="project.isActive ? 'mdi-circle' : 'mdi-circle-outline'"></v-icon>{{ project.name }}
@@ -19,7 +19,7 @@
                             <v-form>
                                 <v-row>
                                     <v-col cols="12" md="6">
-                                        <v-text-field label="Nome:" v-model="project.name"
+                                        <v-text-field label="Nome:" v-model="project.name" @update:model-value="updateProject(project)"
                                             hint="O nome do projeto (Não relacionado com o nome no github)" />
                                     </v-col>
                                     <v-col cols="12" md="4">
@@ -27,16 +27,21 @@
                                             hint="O número identificador do projeto." />
                                     </v-col>
                                     <v-col>
-                                        <v-checkbox label="Ativo" hint="Somente um projeto ativo por vez"
+                                        <v-checkbox label="Ativo" hint="Somente um projeto ativo por vez" @update:model-value="(v)=>checkProjectActive(v,project)"
                                             v-model="project.isActive" />
                                     </v-col>
                                     <v-col cols="12">
-                                        <v-text-field label="Query:" v-model="project.query"
+                                        <v-text-field label="Query:" v-model="project.query" @update:model-value="updateProject(project)"
                                             hint="Você pode ir até o projeto no github e copiar a string gerada no filtro." />
                                     </v-col>
                                 </v-row>
                             </v-form>
                         </v-card-text>
+                        <v-card-actions>
+                            <v-spacer />
+                            <v-btn @click="confirmDeletion(project)" variant="tonal" color="error">Excluir
+                                projeto</v-btn>
+                        </v-card-actions>
                     </v-card>
                 </v-tabs-window-item>
             </v-tabs-window>
@@ -79,26 +84,100 @@
                 </v-card-actions>
             </v-card>
         </v-dialog>
+        <v-dialog max-width="540px" v-model="confirmModal">
+            <v-card title="Confirmar exclusão do projeto?">
+                <v-card-text>
+                    Deseja mesmo excluir o projeto "{{ deletionProject.name }}"?
+                </v-card-text>
+                <v-card-actions>
+                    <v-spacer />
+                    <v-btn variant="tonal" @click="confirmModal = false" color="success">Cancelar</v-btn>
+                    <v-spacer />
+                    <v-btn variant="tonal" @click="deleteProject" color="error">Excluir</v-btn>
+                    <v-spacer />
+                </v-card-actions>
+            </v-card>
+        </v-dialog>
     </v-card>
 </template>
 <script setup>
 import { appStore } from '#imports'
 const authStore = appStore()
-onMounted(async ()=>{
-    loading.value=true
-    await authStore.fetchProjects()
-    loading.value=false
+onMounted(() => {
+    loading.value = true
+    if (!authStore.getCurrentUserInfo.isManagement) {
+        const token = useCookie("token").value;
+        authStore.checkToken(token)
+            .finally(() => {
+                authStore.fetchProjects()
+                    .finally(() => {
+                        loading.value = false
+                        tab.value = projects.value?.find(p=>p.isActive)?.number
+                    })
+            })
+    } else {
+        authStore.fetchProjects()
+            .finally(() => {
+                loading.value = false
+                //setar a tab do projeto ativo como tab ativa
+                tab.value = projects.value?.find(p=>p.isActive)?.number
+            })
+    }
+
 })
 const tab = ref()
+const confirmModal = ref(false)
 const newProjectModal = ref(false)
 const loading = ref(false)
+const deletionProject = ref()
+function confirmDeletion(project) {
+    deletionProject.value = project
+    confirmModal.value = true
+}
+function deleteProject() {
+    loading.value = true
+    authStore.deleteProject(deletionProject.value.number)
+        .finally(() => {
+            authStore.fetchProjects()
+            loading.value = false
+            closeDeletionModal()
+            tab.value = projects.value?.find(p=>p.isActive)?.number
+        })
+}
+
+function closeDeletionModal(){
+    confirmModal.value=false
+    deletionProject.value={}
+}
 const newProject = ref({
     name: "",
     number: null,
     query: "",
     isActive: false
 })
-const projects = computed(()=>{
+function checkProjectActive(v,project){
+    projects.value.filter(p=>p.number!=project.number).forEach(element => {
+        element.isActive=false
+    });
+    updateProject(project,true)
+}
+const debounceUpdate = ref()
+async function updateProject(v, allProjects) {
+    clearTimeout(debounceUpdate.value)
+    debounceUpdate.value = setTimeout(async () => {
+        loading.value = true
+        if(allProjects){
+            await authStore.updateOtherProjects(v)
+        }
+        await authStore.updateProject(v)
+        loading.value = false
+        authStore.fetchProjects()
+        .finally(()=>{
+            tab.value = projects.value?.find(p=>p.isActive)?.number
+        })
+    }, 1000)
+}
+const projects = computed(() => {
     return authStore.getProjects
 })
 function openNewProjectModal() {
@@ -112,13 +191,17 @@ function closeModal() {
         query: "",
         isActive: false
     }
+    tab.value = projects.value?.find(p=>p.isActive)?.number
 }
-async function saveProject(){
+async function saveProject() {
     //salvar o projeto na API
-    loading.value=true
+    loading.value = true
     await authStore.saveProject(newProject.value)
+    if(newProject.value.isActive){
+        await authStore.updateOtherProjects(newProject.value)
+    }
     await authStore.fetchProjects()
-    loading.value=false
+    loading.value = false
     closeModal();
 }
 </script>
