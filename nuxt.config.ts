@@ -29,9 +29,13 @@ export default defineNuxtConfig({
   css: [
     "vuetify/lib/styles/main.sass", // Main Vuetify styles
     "@mdi/font/css/materialdesignicons.min.css", // Optional: Material Design Icons
+    "~/assets/github-markdown.css" //github markdonw
   ],
+  devServer: {
+    port: 3000, // You can specify a different port if needed
+    host: '0.0.0.0' // This makes the server accessible from any IP address on your network
+  },
   runtimeConfig: {
-    githubClientId: process.env.GITHUB_CLIENT_ID,
     adminTeamName: process.env.ADMIN_TEAM_NAME,
     organizationName: process.env.ORGANIZATION_NAME,
     mongodbURL: process.env.MONGODB_URL,
@@ -42,7 +46,8 @@ export default defineNuxtConfig({
     githubClientSecret: process.env.GITHUB_CLIENT_SECRET,
     jwtSecret: process.env.JWT_SECRET,
     public: {
-      githubClientId: process.env.GITHUB_CLIENT_ID,
+      organizationName: process.env.ORGANIZATION_NAME,
+      adminTeamName: process.env.ADMIN_TEAM_NAME,
     },
   },
 });

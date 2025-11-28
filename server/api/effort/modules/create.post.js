@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import Card from "~~/server/models/card.model";
+import EffortModule from "~~/server/models/effortModule.model";
 const config = useRuntimeConfig();
 
 const {
@@ -16,22 +16,28 @@ export default defineEventHandler(async (event) => {
   const body = await readBody(event);
 
   try {
-    const exists = await Card.exists({ value: body.value });
+    const exists = await EffortModule.exists({ value: body.value });
     if (!exists) {
-      const newCard = new Card({
+      const newEffort = new EffortModule({
         value: body.value,
-        minimumValue: body.minimumValue,
-        maximumValue: body.maximumValue,
-        tooltip: body.tooltip, //Colocar a descrição do valor da carta
-        color: body.color,
+        text: body.text,
+        tooltip: body.tooltip,
+        points: body.points,
       });
-      const response = await newCard.save(); // Salvar a nova issue no banco
+      const response = await newEffort.save(); // Salvar a nova issue no banco
       return response;
     } else {
-      throw createError({
-        statusCode: 500,
-        message: "Já existe uma carta com esse valor",
-      });
+      const response = await EffortModule.findOneAndUpdate(
+        {
+          value: body.value,
+        },
+        {
+          text: body.text,
+          tooltip: body.tooltip,
+          points: body.points,
+        }
+      );
+      return response;
     }
   } catch (error) {
     throw createError({

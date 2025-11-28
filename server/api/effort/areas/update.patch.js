@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import Card from "~~/server/models/card.model";
+import EffortArea from "~~/server/models/effortArea.model";
 const config = useRuntimeConfig();
 
 const {
@@ -16,22 +16,22 @@ export default defineEventHandler(async (event) => {
   const body = await readBody(event);
 
   try {
-    const exists = await Card.exists({ value: body.value });
+    const exists = await EffortArea.exists({ value: body.value });
     if (!exists) {
-      const newCard = new Card({
-        value: body.value,
-        minimumValue: body.minimumValue,
-        maximumValue: body.maximumValue,
-        tooltip: body.tooltip, //Colocar a descrição do valor da carta
-        color: body.color,
-      });
-      const response = await newCard.save(); // Salvar a nova issue no banco
-      return response;
-    } else {
       throw createError({
-        statusCode: 500,
-        message: "Já existe uma carta com esse valor",
+        statusCode: 404,
+        message: "Módulo não encontrado",
       });
+    } else {
+      const newEffortArea = EffortArea.findOneAndUpdate(
+        {
+          value: body.value,
+        },
+        {
+          text: body.text,
+        }
+      );
+      return newEffortArea;
     }
   } catch (error) {
     throw createError({
