@@ -8,6 +8,7 @@ const envSchema = z.object({
   MONGODB_URL: z.string().optional(), // A string completa é opcional
   MONGODB_HOST: z.string().optional(), // O host é opcional
   MONGODB_PORT: z.string().default("27017"), // A porta mantém o valor padrão se MONGODB_HOST for usado
+  MONGODB_USERNAME: z.string().default("user"),
   MONGODB_PASSWORD: z.string().default("password"),
   MONGODB_DATABASE: z.string().default("maestro"),
   MONGODB_AUTH_SOURCE: z.string().default("admin"),
@@ -17,7 +18,6 @@ const envSchema = z.object({
   ORGANIZATION_NAME: z.string(),
   NODE_ENV: z.enum(['development', 'production', 'testing']).default('development')
 }).superRefine((data, ctx) => {
-  // Se MONGODB_URL não foi fornecida, o MONGODB_HOST é obrigatório.
   if (!data.MONGODB_URL && !data.MONGODB_HOST) {
     ctx.addIssue({
       code: z.ZodIssueCode.custom,
@@ -38,7 +38,7 @@ const envSchema = z.object({
     }
     return {
       ...data,
-      MONGODB_CONNECTION_STRING: `mongodb://${data.MONGODB_USER}:${data.MONGODB_PASSWORD}@${data.MONGODB_HOST}:${data.MONGODB_PORT}/${data.MONGODB_DATABASE}?authSource=${data.MONGODB_AUTH_SOURCE}`,
+      MONGODB_CONNECTION_STRING: `mongodb://${data.MONGODB_USERNAME}:${data.MONGODB_PASSWORD}@${data.MONGODB_HOST}:${data.MONGODB_PORT}/${data.MONGODB_DATABASE}?authSource=${data.MONGODB_AUTH_SOURCE}`,
     }
   })
 export const env = envSchema.parse(process.env)
