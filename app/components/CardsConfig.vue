@@ -17,6 +17,7 @@
     </v-card>
 </template>
 <script setup>
+// import CardFields from "./CardFields.vue"
 import { useAppStore } from '#imports';
 const appStore = useAppStore()
 const addCardModal = ref(false)

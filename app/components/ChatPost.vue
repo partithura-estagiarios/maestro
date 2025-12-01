@@ -5,10 +5,11 @@
             <div class="git-title" :class="isCommentFromCurrentUser ? 'current-user-bg' : 'other-user-bg'">
                 <span class="text-white">
                     <b>{{ username }}</b> <a :href="historyLink" target="_blank"><span class="text-grey">{{ time
-                            }}</span></a>
+                    }}</span></a>
                 </span>
                 <v-spacer />
-                <v-icon v-if="isCommentFromCurrentUser" color="error" class="mr-4" @click="deleteComment" icon="mdi-delete" />
+                <v-icon v-if="isCommentFromCurrentUser" color="error" class="mr-4" @click="deleteComment"
+                    icon="mdi-delete" />
                 <v-icon v-if="isCommentFromCurrentUser" color="white" @click="editComment" icon="mdi-pencil" />
             </div>
             <v-card-text class="text-white">
@@ -27,16 +28,16 @@
             </v-card-text>
         </v-card>
         <v-dialog width="400px" v-model="showDeleteConfirm" persistent>
-            <v-card>
+            <v-card :loading="loading">
                 <v-toolbar density="compact" title="Confirmar remoção" />
                 <v-card-text>
                     Deseja remover o comentário?
                 </v-card-text>
                 <v-card-actions>
                     <v-spacer />
-                    <v-btn color="error" @click="confirmDelete()" variant="tonal">Sim</v-btn>
+                    <v-btn color="error" :disabled="loading" @click="confirmDelete()" variant="tonal">Sim</v-btn>
                     <v-spacer />
-                    <v-btn color="success" @click="cancelDelete()" variant="tonal">Não</v-btn>
+                    <v-btn color="success" :disabled="loading" @click="cancelDelete()" variant="tonal">Não</v-btn>
                     <v-spacer />
                 </v-card-actions>
             </v-card>
@@ -62,7 +63,16 @@ const props = defineProps({
     }
 })
 
-const emits = defineEmits(["editCommentary", "saveCommentary", "saved", "error","deleted"])
+const emits = defineEmits([
+    "start:deleting",
+    "success:deleting",
+    "error:deleting",
+    "end:deleting",
+    "start:saving",
+    "success:saving",
+    "error:saving",
+    "end:saving",
+])
 
 
 //ACTUAL USER
@@ -101,26 +111,31 @@ const isEditing = ref(false)
 const loading = ref(false)
 const showDeleteConfirm = ref(false)
 
-function confirmDelete(){
-    loading.value=true
+function confirmDelete() {
+    emits("start:deleting", {
+        repo: props.issue?.content?.repository?.name,
+        comment_id: props.commentary.id
+    })
+    loading.value = true
     commentaryStore.deleteComment({
-        repo:props.issue?.content?.repository?.name,
-        comment_id:props.commentary.id
+        repo: props.issue?.content?.repository?.name,
+        comment_id: props.commentary.id
     })
-    .then(resp=>{
-        emits("deleted",resp)
-    })
-    .catch(err=>{
-        emits("error",err)
-    })
-    .finally(()=>{
-        loading.value=false
-        showDeleteConfirm.value=false
-    })
+        .then(resp => {
+            emits("success:deleting", resp)
+        })
+        .catch(err => {
+            emits("error:deleting", err)
+        })
+        .finally(() => {
+            loading.value = false
+            showDeleteConfirm.value = false
+            emits("end:deleting")
+        })
 }
 
-function cancelDelete(){
-    showDeleteConfirm.value=false
+function cancelDelete() {
+    showDeleteConfirm.value = false
 }
 
 function editComment() {
@@ -136,7 +151,7 @@ function cancelUpdate() {
 }
 function updateContent() {
     //salvar conteúdo do editableComment no git
-    emits("saveCommentary", editableComment.value)
+    emits("start:saving", editableComment.value)
     loading.value = true
     commentaryStore.updateComment({
         repo: props.issue?.content?.repository?.name,
@@ -144,15 +159,15 @@ function updateContent() {
         comment_body: editableComment.value
     })
         .then(response => {
-            emits("saved", response)
+            emits("success:saving", response)
             isEditing.value = false
         })
         .catch(err => {
-            console.error(err)
-            emits("error", err)
+            emits("error:saving", err)
         })
         .finally(() => {
             loading.value = false
+            emits("end:saving")
         })
 }
 </script>

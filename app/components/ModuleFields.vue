@@ -22,7 +22,7 @@
                                 </v-row>
                                 <v-row v-for="(point, index) in module.points" :key="point.value" dense>
                                     <v-col>
-                                        <v-number-input readonly :loading="loading" v-model="point.value"
+                                        <v-number-input v-model="point.value" readonly :loading="loading"
                                             label="Valor do ponto" />
                                     </v-col>
                                     <v-col>

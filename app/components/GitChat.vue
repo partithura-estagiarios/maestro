@@ -4,9 +4,9 @@
             <v-skeleton-loader v-if="loading" type="article" />
             <template v-else>
                 <ChatPost v-for="commentary in commentaries" :key="commentary.id" :commentary="commentary"
-                    :issue="props.issue" @saved="loadIssueCommentary()" @deleted="loadIssueCommentary()"/>
+                    :issue="props.issue" @end:saving="loadIssueCommentary()" @end:deleting="loadIssueCommentary()"/>
             </template>
-            <NewCommentary :issue="props.issue" @saved="loadIssueCommentary()"/>
+            <NewCommentary :issue="props.issue" @end:saving="loadIssueCommentary()"/>
         </v-card-text>
     </v-card>
 </template>

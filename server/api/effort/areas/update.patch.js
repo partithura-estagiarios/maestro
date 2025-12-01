@@ -1,18 +1,9 @@
 import mongoose from "mongoose";
 import EffortArea from "~~/server/models/effortArea.model";
-const config = useRuntimeConfig();
-
-const {
-  mongodbURL,
-  mongodbPassword,
-  mongodbUsername,
-  mongodbDatabase,
-  mongodbAuthSource,
-} = config;
+import { env } from "~~/server/support/env";
 
 export default defineEventHandler(async (event) => {
-  const connectionString = `mongodb://${mongodbUsername}:${mongodbPassword}@${mongodbURL}/${mongodbDatabase}?authSource=${mongodbAuthSource}`;
-  await mongoose.connect(connectionString);
+  await mongoose.connect(env.MONGODB_CONNECTION_STRING);
   const body = await readBody(event);
 
   try {
@@ -20,7 +11,7 @@ export default defineEventHandler(async (event) => {
     if (!exists) {
       throw createError({
         statusCode: 404,
-        message: "Módulo não encontrado",
+        message: "Área não encontrada",
       });
     } else {
       const newEffortArea = EffortArea.findOneAndUpdate(

@@ -4,7 +4,6 @@ import { config } from "dotenv"
 config()
 
 const envSchema = z.object({
-  MONGODB_HOST: z.string(),
   MONGODB_URL: z.string().optional(), // A string completa é opcional
   MONGODB_HOST: z.string().optional(), // O host é opcional
   MONGODB_PORT: z.string().default("27017"), // A porta mantém o valor padrão se MONGODB_HOST for usado
@@ -12,8 +11,6 @@ const envSchema = z.object({
   MONGODB_PASSWORD: z.string().default("password"),
   MONGODB_DATABASE: z.string().default("maestro"),
   MONGODB_AUTH_SOURCE: z.string().default("admin"),
-  GITHUB_CLIENT_ID: z.string(),
-  GITHUB_CLIENT_SECRET: z.string(),
   ADMIN_TEAM_NAME: z.string(),
   ORGANIZATION_NAME: z.string(),
   NODE_ENV: z.enum(['development', 'production', 'testing']).default('development')

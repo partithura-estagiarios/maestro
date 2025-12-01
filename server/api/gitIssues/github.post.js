@@ -1,21 +1,14 @@
 import { Octokit } from "octokit";
 import mongoose from "mongoose";
 import ErrorLog from "../../models/error.model"
+import { env } from "~~/server/support/env";
 
-const config = useRuntimeConfig();
-const {
-  mongodbURL,
-  mongodbPassword,
-  mongodbUsername,
-  mongodbDatabase,
-  mongodbAuthSource,
-} = config;
+
 export default defineEventHandler(async (event) => {
   // Obter o token do header Authorization
   const authHeader = getHeader(event, "Authorization");
   const username = getHeader(event, "username");
-  const connectionString = `mongodb://${mongodbUsername}:${mongodbPassword}@${mongodbURL}/${mongodbDatabase}?authSource=${mongodbAuthSource}`;
-  await mongoose.connect(connectionString);
+  await mongoose.connect(env.MONGODB_CONNECTION_STRING);
 
   const githubToken = authHeader.substring(7); // Remove "Bearer "
 

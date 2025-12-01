@@ -1,10 +1,10 @@
 import { defineStore } from "pinia";
-import { useAppStore } from './appStore'
+import { useAppStore } from "./appStore";
 
 export const useEffortStore = defineStore("effortStore", {
   state: () => ({
-    effortModules:[],
-    effortAreas:[]
+    effortModules: [],
+    effortAreas: [],
   }),
   getters: {
     getEffortModules: (state) => state.effortModules,
@@ -13,7 +13,7 @@ export const useEffortStore = defineStore("effortStore", {
   actions: {
     //EffortModules
     async createEffortModules(v) {
-      const appStore = useAppStore()
+      const appStore = useAppStore();
       const githubToken = useCookie("token");
       if (!githubToken.value) {
         appStore.updateCurrentToken(null);
@@ -21,14 +21,17 @@ export const useEffortStore = defineStore("effortStore", {
       }
 
       try {
-        const newEffortModuleResult = await $fetch("/api/effort/modules/create", {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${githubToken.value}`,
-            username: appStore.getCurrentUserInfo.login,
-          },
-          body: v,
-        });
+        const newEffortModuleResult = await $fetch(
+          "/api/effort/modules/create",
+          {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${githubToken.value}`,
+              username: appStore.getCurrentUserInfo.login,
+            },
+            body: v,
+          }
+        );
         return newEffortModuleResult.data;
       } catch (error) {
         console.error("Erro ao criar carta:", error);
@@ -40,16 +43,18 @@ export const useEffortStore = defineStore("effortStore", {
         const listEffortModules = await $fetch("/api/effort/modules/list", {
           method: "GET",
         });
-        console.log("EffortModules:",listEffortModules)
+        console.log("EffortModules:", listEffortModules);
         this.effortModules = listEffortModules;
         return listEffortModules;
       } catch (error) {
-        window.alert(`Houve um erro no effortStore.fetchEffortModules; Erro: ${error}`)
+        window.alert(
+          `Houve um erro no effortStore.fetchEffortModules; Erro: ${error}`
+        );
         return false;
       }
     },
     async updateEffortModule(v) {
-      const appStore = useAppStore()
+      const appStore = useAppStore();
       const githubToken = useCookie("token");
       if (!githubToken.value) {
         appStore.updateCurrentToken(null);
@@ -57,14 +62,17 @@ export const useEffortStore = defineStore("effortStore", {
       }
 
       try {
-        const newEffortModuleResult = await $fetch("/api/effort/modules/update", {
-          method: "PATCH",
-          headers: {
-            Authorization: `Bearer ${githubToken.value}`,
-            username: appStore.getCurrentUserInfo.login,
-          },
-          body: v,
-        });
+        const newEffortModuleResult = await $fetch(
+          "/api/effort/modules/update",
+          {
+            method: "PATCH",
+            headers: {
+              Authorization: `Bearer ${githubToken.value}`,
+              username: appStore.getCurrentUserInfo.login,
+            },
+            body: v,
+          }
+        );
         return newEffortModuleResult.data;
       } catch (error) {
         console.error("Erro ao atualizar effort:", error);
@@ -72,7 +80,7 @@ export const useEffortStore = defineStore("effortStore", {
       }
     },
     async deleteEffortModule(v) {
-      const appStore = useAppStore()
+      const appStore = useAppStore();
       const githubToken = useCookie("token");
       if (!githubToken.value) {
         appStore.updateCurrentToken(null);
@@ -80,28 +88,32 @@ export const useEffortStore = defineStore("effortStore", {
       }
 
       try {
-        const newEffortModuleResult = await $fetch("/api/effort/modules/remove", {
-          method: "DELETE",
-          headers: {
-            Authorization: `Bearer ${githubToken.value}`,
-            username: appStore.getCurrentUserInfo.login,
-          },
-          body: {
-            value: v,
-          },
-        });
+        const newEffortModuleResult = await $fetch(
+          "/api/effort/modules/remove",
+          {
+            method: "DELETE",
+            headers: {
+              Authorization: `Bearer ${githubToken.value}`,
+              username: appStore.getCurrentUserInfo.login,
+            },
+            body: {
+              value: v,
+            },
+          }
+        );
         return newEffortModuleResult;
       } catch (error) {
         console.error("Erro ao excluir módulo:", error);
         throw error;
       }
     },
-    
+
     //EffortAreas
     async createEffortAreas(v) {
+      const appStore = useAppStore();
       const githubToken = useCookie("token");
       if (!githubToken.value) {
-        this.updateCurrentToken(null);
+        appStore.updateCurrentToken(null);
         throw new Error("Nenhum token disponível.");
       }
 
@@ -110,13 +122,13 @@ export const useEffortStore = defineStore("effortStore", {
           method: "POST",
           headers: {
             Authorization: `Bearer ${githubToken.value}`,
-            username: this.getCurrentUserInfo.login,
+            username: appStore.getCurrentUserInfo.login,
           },
           body: v,
         });
         return newEffortAreasResult.data;
       } catch (error) {
-        console.error("Erro ao criar carta:", error);
+        console.error("Erro ao criar area:", error);
         throw error;
       }
     },
@@ -125,39 +137,43 @@ export const useEffortStore = defineStore("effortStore", {
         const newEffortAreas = await $fetch("/api/effort/areas/list", {
           method: "GET",
         });
-        this.effortModules = newEffortAreas;
+        this.effortAreas = newEffortAreas;
         return newEffortAreas;
       } catch (error) {
-        window.alert(`Houve um erro no effortStore.fetchEffortAreas; Erro: ${error}`)
+        window.alert(
+          `Houve um erro no effortStore.fetchEffortAreas; Erro: ${error}`
+        );
         return false;
       }
     },
     async updateEffortAreas(v) {
+      const appStore = useAppStore();
       const githubToken = useCookie("token");
       if (!githubToken.value) {
-        this.updateCurrentToken(null);
+        appStore.updateCurrentToken(null);
         throw new Error("Nenhum token disponível.");
       }
 
       try {
-        const newEffortAreasResult = await $fetch("/api/effort/areas/update", {
+        const newEffortAreaResult = await $fetch("/api/effort/areas/update", {
           method: "PATCH",
           headers: {
             Authorization: `Bearer ${githubToken.value}`,
-            username: this.getCurrentUserInfo.login,
+            username: appStore.getCurrentUserInfo.login,
           },
           body: v,
         });
-        return newEffortAreasResult.data;
+        return newEffortAreaResult.data;
       } catch (error) {
-        console.error("Erro ao atualizar effort:", error);
+        console.error("Erro ao atualizar area:", error);
         throw error;
       }
     },
     async deleteEffortAreas(v) {
+      const appStore = useAppStore();
       const githubToken = useCookie("token");
       if (!githubToken.value) {
-        this.updateCurrentToken(null);
+        appStore.updateCurrentToken(null);
         throw new Error("Nenhum token disponível.");
       }
 
@@ -166,7 +182,7 @@ export const useEffortStore = defineStore("effortStore", {
           method: "DELETE",
           headers: {
             Authorization: `Bearer ${githubToken.value}`,
-            username: this.getCurrentUserInfo.login,
+            username: appStore.getCurrentUserInfo.login,
           },
           body: {
             value: v,
@@ -178,6 +194,8 @@ export const useEffortStore = defineStore("effortStore", {
         throw error;
       }
     },
-    
+    setAreas(v) {
+      this.effortAreas = v;
+    },
   },
 });

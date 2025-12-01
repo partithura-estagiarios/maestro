@@ -45,10 +45,15 @@ const props = defineProps({
     }
 })
 
-const emits = defineEmits(["saved", "error", "saving"])
+const emits = defineEmits([
+    "start:saving",
+    "success:saving",
+    "error:saving",
+    "end:saving"
+])
 
 function saveComment() {
-    emits("saving")
+    emits("start:saving")
     loading.value = true
     commentaryStore.createComment({
         repo: props.issue?.content?.repository?.name,
@@ -56,13 +61,15 @@ function saveComment() {
         comment_body: content.value
     })
         .then((resp) => {
-            emits("saved", resp)
+            emits("success:saving", resp)
         })
         .catch(err => {
-            emits("error", err)
+            emits("error:saving", err)
         })
         .finally(() => {
             loading.value = false
+            content.value = ""
+            emits("end:saving")
         })
 }
 

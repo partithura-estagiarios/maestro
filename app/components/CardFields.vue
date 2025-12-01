@@ -4,7 +4,7 @@
             <v-row dense>
                 <v-col cols="12" md="3">
                     <v-text-field :loading="loading" :disabled="loading" readonly v-model="card.value"
-                        label="Valor visual" prepend-icon="mdi-delete" @click:prepend="deleteCard(card.value)" />
+                        label="Valor visual" prepend-icon="mdi-delete" @click:prepend="deleteModal=true" />
                 </v-col>
                 <v-col cols="12" md="3">
                     <v-number-input :loading="loading" :disabled="loading" :max="card.maximumValue" :precision="1"
@@ -40,9 +40,24 @@
             <PokerCard :selected="activeCard" :card-value="card.value" :maximum-value="card.maximumValue"
                 :minimum-value="card.minimumValue" :color="card.color" @click="toggleCardActive" />
         </v-col>
+        <v-dialog max-width="540px" v-model="deleteModal">
+            <v-card title="Confirmar exclusão de carta">
+                <v-card-text>
+                    Deseja mesmo excluir a carta "{{ card.value }}"?
+                </v-card-text>
+                <v-card-actions>
+                    <v-spacer />
+                    <v-btn variant="tonal" @click="deleteModal = false" color="success">Cancelar</v-btn>
+                    <v-spacer />
+                    <v-btn variant="tonal" @click="deleteCard" color="error">Excluir</v-btn>
+                    <v-spacer />
+                </v-card-actions>
+            </v-card>
+        </v-dialog>
     </v-row>
 </template>
 <script setup>
+
 import { useAppStore } from '#imports'
 const appStore = useAppStore()
 
@@ -50,8 +65,9 @@ const card = defineModel({ type: Object })
 const debounceUpdate = ref()
 const loading = ref(false)
 const activeCard = ref(false)
+const deleteModal = ref(false)
 
-function toggleCardActive(){
+function toggleCardActive() {
     activeCard.value = !activeCard.value
 }
 
@@ -65,9 +81,9 @@ async function updateCard(v) {
     }, 1000)
 }
 
-async function deleteCard(cardId) {
+async function deleteCard() {
     loading.value = true
-    await appStore.deleteCard(cardId)
+    await appStore.deleteCard(card.value.value)
     await appStore.fetchCardDeck()
     loading.value = false
 }
