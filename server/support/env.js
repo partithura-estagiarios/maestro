@@ -11,8 +11,8 @@ const envSchema = z.object({
   MONGODB_PASSWORD: z.string().default("password"),
   MONGODB_DATABASE: z.string().default("maestro"),
   MONGODB_AUTH_SOURCE: z.string().default("admin"),
-  ADMIN_TEAM_NAME: z.string(),
-  ORGANIZATION_NAME: z.string(),
+  ADMIN_TEAM_NAME: z.string().default("senior"),
+  ORGANIZATION_NAME: z.string().default("partithura"),
   NODE_ENV: z.enum(['development', 'production', 'testing']).default('development')
 }).superRefine((data, ctx) => {
   if (!data.MONGODB_URL && !data.MONGODB_HOST) {
