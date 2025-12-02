@@ -1,8 +1,7 @@
 import { Octokit } from "octokit";
 import mongoose from "mongoose";
-import ErrorLog from "../../models/error.model"
+import ErrorLog from "../../models/error.model";
 import { env } from "~~/server/support/env";
-
 
 export default defineEventHandler(async (event) => {
   // Obter o token do header Authorization
@@ -63,11 +62,10 @@ export default defineEventHandler(async (event) => {
       headers: responseHeaders,
     };
   } catch (error) {
-    console.error("Falha em github.post");
-    console.warn("Error: ", error);
+    console.error(error);
     const newError = new ErrorLog({
-      apiEndpoint: 'gitIssues/post',
-      gitEndpoint: '/orgs/{org}/projectsV2/{project_number}/items',
+      apiEndpoint: "gitIssues/post",
+      gitEndpoint: "/orgs/{org}/projectsV2/{project_number}/items",
       method: "GET",
       requestBody: body,
       errorMessage: error.message,

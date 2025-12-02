@@ -12,7 +12,7 @@ const addHook = (config: Readonly<ViteConfig>): void => {
       autoImport: true,
     })
   );
-}
+};
 
 export default defineNuxtConfig({
   compatibilityDate: "2025-07-15",
@@ -24,21 +24,22 @@ export default defineNuxtConfig({
     "@nuxt/eslint",
     // "@nuxt/fonts",
     // "@nuxt/icon",
-    '@pinia/nuxt',
+    "@pinia/nuxt",
     (_options, nuxt) => {
       nuxt.hooks.hook("vite:extendConfig", addHook);
     },
   ],
-  plugins: ['~/plugins/vuetify.js'],
+  plugins: ["~/plugins/vuetify.js"],
   components: true,
   css: [
+    "~/assets/settings.scss", //Vuetify settings
     "vuetify/lib/styles/main.sass", // Main Vuetify styles
     "@mdi/font/css/materialdesignicons.min.css", // Optional: Material Design Icons
-    "~/assets/github-markdown.css" //github markdonw
+    "~/assets/github-markdown.css", //github markdonw
   ],
   devServer: {
     port: 3000, // You can specify a different port if needed
-    host: '0.0.0.0' // This makes the server accessible from any IP address on your network
+    host: "0.0.0.0", // This makes the server accessible from any IP address on your network
   },
   runtimeConfig: {
     githubClientId: env.GITHUB_CLIENT_ID,

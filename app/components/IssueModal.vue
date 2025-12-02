@@ -19,8 +19,7 @@
                         <div v-html="body" />
                     </v-card-text>
                 </v-card>
-                <CardDeck
-ref="cardDeck" v-model="selectedCard" :votes="databaseIssue?.votes" :cant-vote="cantVote"
+                <CardDeck ref="cardDeck" v-model="selectedCard" :votes="databaseIssue?.votes" :cant-vote="cantVote"
                     :loading="loading" />
 
                 <GitChat :issue="issue" />
@@ -28,8 +27,7 @@ ref="cardDeck" v-model="selectedCard" :votes="databaseIssue?.votes" :cant-vote="
             <v-card-actions>
                 <v-btn :href="issueURL" target="_blank">Issue número #{{ issue.content.number }}</v-btn>
                 <v-spacer />
-                <v-btn
-:disabled="cantVote || loading" :loading="loading" color="success" variant="tonal"
+                <v-btn :disabled="cantVote || loading" :loading="loading" color="success" variant="tonal"
                     @click="confirmVote">{{
                         buttonText }}</v-btn>
             </v-card-actions>
@@ -49,7 +47,13 @@ const props = defineProps({
 const cantVote = computed(() => {
     return appStore.getCardDeck.length <= 1 || !isReady.value
 })
-const emits = defineEmits(["confirmVote"])
+const emits = defineEmits([
+    "confirmVote",
+    "start:voting",
+    "success:voting",
+    "error:voting",
+    "end:voting",
+])
 const model = defineModel({ type: Boolean })
 
 const cardDeck = ref()
@@ -62,7 +66,7 @@ const title = computed(() => {
     }).value?.raw
 })
 const body = computed(() => {
-     
+
     return parseGitMD(props.issue?.content?.body, props.issue?.content.repository?.name)
 })
 const issueURL = computed(() => {
@@ -87,6 +91,7 @@ const isReady = computed(() => {
 
 function confirmVote() {
     //verificar se o usuário é management e decidir se salva no git ou no mongo
+    emits("start:voting")
     loading.value = true
     if (user.value.isManagement && typeof cardDeck.value?.result?.isFinal) {
         issuesStore.updateIssueEffort({
@@ -94,14 +99,16 @@ function confirmVote() {
             value: Number(cardDeck.value?.result?.value)
         })
             .then(r => {
+                emits("success:voting")
                 if (r) {
                     closeModal()
                 }
             })
             .catch(e => {
-                console.error(e)
+                emits("error:voting", e)
             }).finally(() => {
                 loading.value = false
+                emits("end:voting")
             })
     } else if (appStore) {
         emits("confirmVote", {
@@ -111,6 +118,7 @@ function confirmVote() {
         })
         loading.value = false
         closeModal()
+        emits("end:voting")
     }
 }
 

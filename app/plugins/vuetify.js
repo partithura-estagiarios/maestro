@@ -10,11 +10,23 @@ export default defineNuxtPlugin((nuxtApp) => {
       defaultTheme: "dark", // Options: 'light', 'dark', 'system'
       // disable: true, // Set to true to disable theme functionality
     },
+    customVariables: ["../assets/settings.scss"],
     components,
     directives,
-    // styles: {
-    //   configFile: "/assets/settings.scss",
-    // },
+    defaults: {
+      VTextField: {
+        variant: "outlined",
+      },
+      VSelect: {
+        variant: "outlined",
+      },
+      VNumberInput: {
+        variant: "outlined",
+      },
+    },
+    styles: {
+      configFile: "../assets/settings.scss",
+    },
   });
   nuxtApp.vueApp.use(vuetify);
 });

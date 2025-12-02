@@ -1,1 +1,6 @@
-@import './github-markdown.css'; 
+@use "vuetify/settings" with (
+  // variables go here
+  $font-size-root: 4rem,
+  $body-font-family: "arial",
+  $button-border-radius: "32px"
+);
