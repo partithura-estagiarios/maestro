@@ -7,7 +7,7 @@ RUN npm install
 
 COPY . .
 
-RUN npm run build
+RUN NUXT_BUILD=true npm run build
 
 # ----------------------------------------------------
 FROM node:20-slim
