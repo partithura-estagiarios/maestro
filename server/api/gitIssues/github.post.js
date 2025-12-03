@@ -1,6 +1,7 @@
 import { Octokit } from "octokit";
 import mongoose from "mongoose";
 import ErrorLog from "../../models/error.model";
+import Issue from "../../models/issue.model";
 import { env } from "~~/server/support/env";
 
 export default defineEventHandler(async (event) => {
@@ -49,9 +50,13 @@ export default defineEventHandler(async (event) => {
         before,
       }
     );
+    const mongoResponse = await Issue.find();
 
     if (response.errors) {
       throw new Error(response.errors[0].message);
+    }
+    if (mongoResponse.errors) {
+      throw new Error(mongoResponse.errors[0].message);
     }
 
     const issues = response.data;
@@ -59,6 +64,7 @@ export default defineEventHandler(async (event) => {
 
     return {
       issues: issues,
+      mongo: mongoResponse,
       headers: responseHeaders,
     };
   } catch (error) {

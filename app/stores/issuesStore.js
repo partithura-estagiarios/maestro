@@ -44,12 +44,24 @@ export const useIssuesStore = defineStore("issuesStore", {
   state: () => {
     return {
       issues: [],
+      mongoIssues: [],
       links: {},
     };
   },
   getters: {
     getCurrentIssues: (state) => {
-      return state.issues;
+      return state.issues.map((issue) => {
+        const mongoData = state.mongoIssues.find((m) => {
+          return m.id == issue.id;
+        });
+        return {
+          ...issue,
+          votes: mongoData?.votes || [],
+        };
+      });
+    },
+    getMongoIssues: (state) => {
+      return state.mongoIssues;
     },
     getParsedLinks: (state) => {
       return state.links;
@@ -58,6 +70,9 @@ export const useIssuesStore = defineStore("issuesStore", {
   actions: {
     setCurrentIssues(v) {
       this.issues = v;
+    },
+    setCurrentMongoIssues(v) {
+      this.mongoIssues = v;
     },
     setCurrentLinks(v) {
       this.links = v;
@@ -86,6 +101,7 @@ export const useIssuesStore = defineStore("issuesStore", {
           body: { ...filters, ...resolvedDirection },
         });
         this.setCurrentIssues(response.issues);
+        this.setCurrentMongoIssues(response.mongo);
         if (response.headers.link) {
           this.setCurrentLinks(parseLinkHeaderManually(response.headers.link));
         }
@@ -143,8 +159,8 @@ export const useIssuesStore = defineStore("issuesStore", {
     },
     async updateIssueEffort({ issue, value }) {
       const appStore = useAppStore();
-      const user = appStore.getCurrentUserInfo.login
-      const activeProject = appStore.getActiveProject
+      const user = appStore.getCurrentUserInfo.login;
+      const activeProject = appStore.getActiveProject;
       const githubToken = useCookie("token");
       if (!githubToken.value) {
         throw new Error("Nenhum token disponível.");
@@ -158,9 +174,9 @@ export const useIssuesStore = defineStore("issuesStore", {
             username: user,
           },
           body: {
-            issueNumber:issue.content.number, 
-            projectNumber:activeProject.number, 
-            dificuldade:value
+            issueNumber: issue.content.number,
+            projectNumber: activeProject.number,
+            dificuldade: value,
           },
         });
         return response;

@@ -13,7 +13,7 @@
                 <h5>{{ noResultsHint }}</h5>
             </div>
         </div>
-        <v-footer app absolute>
+        <v-footer app absolute class="align-center">
             <v-tooltip location="top">
                 <template #activator="{ props }">
                     <v-btn v-bind="props" icon="mdi-refresh" @click="loadIssues()" />
@@ -22,7 +22,7 @@
             </v-tooltip>
             <v-text-field v-if="isManagement" v-model="query" label="Query" hide-details density="compact"
                 variant="outlined" @update:model-value="updateQuery()" />
-
+            <v-checkbox v-model="filterVoted" hide-details label="Apenas tasks sem voto?" />
             <v-spacer />
             <v-select v-model="paginationSize" max-width="150px" label="Itens por página" :items="paginationSizes"
                 hide-details density="compact" variant="outlined" />
@@ -46,6 +46,7 @@ import { useAppStore, useIssuesStore } from '#imports'
 const appStore = useAppStore();
 const issuesStore = useIssuesStore()
 const loading = ref(true)
+const filterVoted = ref(false)
 const paginationSizes = ref([12, 24, 32])
 const paginationSize = ref(12)
 const isManagement = computed(() => {
@@ -60,7 +61,16 @@ const user = computed(() => {
     return appStore.getCurrentUserInfo
 })
 const issues = computed(() => {
-    return issuesStore.getCurrentIssues
+
+    return filterVoted.value ? filteredIssues.value : issuesStore.getCurrentIssues
+})
+
+const filteredIssues = computed(() => {
+    return issuesStore.getCurrentIssues.filter(issue => {
+        return !issue.votes.find(vote => {
+            return vote.user.id == user.value.id
+        })
+    })
 })
 
 function loadNextPage() {
@@ -171,11 +181,10 @@ function loadIssues(direction = "") {
 </script>
 
 <style lang="scss" scoped>
-.missing-vuetify-app-footer {
-    position: absolute !important;
-    bottom: 0px;
-    left: 0px;
-    right: 0px;
+.align-center {
+    align-items: center;
+    align-content: center;
+    display: flex;
 }
 
 .no-results {
