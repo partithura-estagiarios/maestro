@@ -1,7 +1,6 @@
 <template>
     <v-card>
         <v-card-title>
-            {{ tab }}
             <v-skeleton-loader v-if="loading" type="card" />
             <template v-else>
                 <div v-if="!modules.length">

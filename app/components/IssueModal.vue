@@ -19,7 +19,6 @@
                         <div v-html="body" />
                     </v-card-text>
                 </v-card>
-                show votes: {{ showVotes }}
                 <CardDeck ref="cardDeck" v-model="selectedCard" :votes="databaseIssue?.votes" :is-ready="isReady"
                     :cant-vote="cantVote" :loading="loading" :show-votes="showVotes" />
 
@@ -110,6 +109,7 @@ function confirmVote() {
 }
 
 function savePoints() {
+    loading.value = true;
     if (isReady.value) {
         issuesStore.updateIssueEffort({
             issue: props.issue,
@@ -134,6 +134,10 @@ function savePoints() {
             })
             .catch(e => {
                 console.log("Error:", e)
+            })
+            .finally(() => {
+                loading.value = false
+                emits("end:voting")
             })
     }
 }

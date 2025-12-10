@@ -52,6 +52,7 @@ export default defineNuxtConfig({
     githubClientSecret: env.GITHUB_CLIENT_SECRET,
     public: {
       githubClientId: env.GITHUB_CLIENT_ID,
+      organizationName: env.ORGANIZATION_NAME,
     },
   },
 });
