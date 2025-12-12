@@ -1,0 +1,13 @@
+const changelog = [
+  "Mudança visual no esquema de cores da Dashboard;",
+  "Incluido repositório e número da task nos cards da Dashboard;",
+  "Adicionado tooltip com o valor votado na task, nos cards da Dashboard;",
+  "Adicionado link direto para a task nos cards da Dashboard;",
+  "A cor dos links das tasks segue o padrão usado no VSCode;",
+  "Posição do link da task no modal de votação foi atualizado para o lado direito do modal;",
+  "Adicionado opção de sobrescrever o valor da votação;",
+  "Formatação do estilo do modal para manter o tamanho dos botões;",
+  "Corrigido bug que não recarregava itens após a votação;",
+];
+
+export { changelog };

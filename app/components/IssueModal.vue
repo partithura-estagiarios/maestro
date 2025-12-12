@@ -6,10 +6,15 @@
                 <template #title>
                     <span class="issue-link">
                         <span class="mr-2" v-html="title" />
-                        <a :href="issueURL" target="_blank">#{{ issue.content.number }}</a>
                     </span>
                 </template>
                 <template #append>
+                    <span class="issue-link">
+                        <a :href="issueURL" target="_blank" :class="issueLinkColor" class="mr-4">{{
+                            issue.content.repository.name }}/#{{
+                                issue.content.number
+                            }}</a>
+                    </span>
                     <v-icon icon="mdi-close" @click="closeModal" />
                 </template>
             </v-toolbar>
@@ -27,9 +32,11 @@
             <v-card-actions>
                 <v-btn :href="issueURL" target="_blank">Issue número #{{ issue.content.number }}</v-btn>
                 <v-spacer />
-                <v-btn v-if="isManagement" :disabled="loading" :loading="loading" color="primary" variant="tonal"
-                    @click="savePoints">{{ isReady ? 'Salvar Dificuldade' : 'Exibir votos' }}</v-btn>
-                <v-btn :disabled="cantVote || loading" :loading="loading" color="success" variant="tonal"
+                <v-select v-if="isManagement" v-model="finalValueRef" :items="cards" item-title="value" clearable
+                    item-value="value" label="Sobrescrever voto" density="compact" hide-details max-width="180px" />
+                <v-btn width="264px" v-if="isManagement" :disabled="loading" :loading="loading" :color="saveButtonColor"
+                    variant="tonal" @click="savePoints">{{ saveButtonText }}</v-btn>
+                <v-btn width="264px" :disabled="cantVote || loading" :loading="loading" color="success" variant="tonal"
                     @click="confirmVote">Confirmar voto</v-btn>
             </v-card-actions>
         </v-card>
@@ -51,6 +58,24 @@ const cantVote = computed(() => {
 const showVotes = computed(() => {
     return props.issue.show_votes
 })
+const cards = computed(() => {
+    return appStore.getCardDeck
+})
+const finalValueRef = ref(null)
+
+const saveButtonText = computed(() => {
+    if (finalValueRef.value != null) {
+        return 'Sobrescrever Dificuldade'
+    }
+    return isReady.value ? 'Salvar Dificuldade' : 'Exibir votos'
+})
+const saveButtonColor = computed(() => {
+    if (finalValueRef.value != null) {
+        return 'error'
+    }
+    return !isReady.value ? 'primary' : 'secondary'
+})
+
 const emits = defineEmits([
     "confirmVote",
     "start:voting",
@@ -58,6 +83,16 @@ const emits = defineEmits([
     "error:voting",
     "end:voting",
 ])
+const issueLinkColor = computed(() => {
+    const name = props.issue?.content?.repository?.name
+    if (name.includes('frontend')) {
+        return 'frontend-text'
+    }
+    if (name.includes('backend')) {
+        return 'backend-text'
+    }
+    return 'unknown-text'
+})
 const model = defineModel({ type: Boolean })
 
 const cardDeck = ref()
@@ -110,10 +145,10 @@ function confirmVote() {
 
 function savePoints() {
     loading.value = true;
-    if (isReady.value) {
+    if (isReady.value || finalValueRef.value != null) {
         issuesStore.updateIssueEffort({
             issue: props.issue,
-            value: Number(cardDeck.value?.result?.value)
+            value: finalValueRef.value != null ? Number(finalValueRef.value) : Number(cardDeck.value?.result?.value)
         })
             .then(r => {
                 emits("success:voting")
@@ -159,12 +194,11 @@ watch(model, async (n, o) => {
     }
 })
 </script>
-<style lang="scss" scoped>
+<style lang="scss">
 .issue-link {
     font-size: 1.75rem;
 
     a {
-        color: gray;
         text-decoration: none;
     }
 }
@@ -172,5 +206,29 @@ watch(model, async (n, o) => {
 .scrollable {
     max-height: calc(100vh - 100px);
     overflow-y: scroll;
+}
+
+.frontend-text {
+    color: #42b883 !important;
+
+    &:visited {
+        color: #42b883 !important;
+    }
+}
+
+.backend-text {
+    color: #dbc3fc !important;
+
+    &:visited {
+        color: #dbc3fc !important;
+    }
+}
+
+.unknown-text {
+    color: rgb(128, 128, 128) !important;
+
+    &:visited {
+        color: rgb(128, 128, 128) !important;
+    }
 }
 </style>

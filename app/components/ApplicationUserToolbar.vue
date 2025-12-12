@@ -1,5 +1,5 @@
 <template>
-    <v-app-bar elevation="8" density="compact">
+    <v-app-bar elevation="8" density="compact" border="b-sm">
         <v-app-bar-title>
             <v-btn size="large" slim class="d-flex align-center" @click="goToRoute('/dashboard')">
                 <LogoIcon size="42px" />
@@ -7,8 +7,20 @@
             </v-btn>
         </v-app-bar-title>
         <template #append>
-            <span class="mr-3 text-center text-grey-darken-1 font-weight-thin text-subtitle-2">{{ name }} v{{ version
-                }}</span>
+            <v-tooltip location="bottom end" theme="dark">
+                <template #activator="{ props }">
+                    <span v-bind="props" class="mr-3 text-center text-grey-darken-1 font-weight-thin text-subtitle-2">{{
+                        name }} v{{ version
+                        }}</span>
+                </template>
+                <div class="pa-4">
+                    <h3>Changelog:</h3>
+                    <h5>v{{ version }}</h5>
+                    <ul>
+                        <li v-for="(logData, index) in changelog" :key="index">{{ logData }}</li>
+                    </ul>
+                </div>
+            </v-tooltip>
             <v-menu>
                 <template #activator="{ props }">
                     <v-avatar v-bind="props" :image="userImageUrl" start />

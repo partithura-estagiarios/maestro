@@ -23,7 +23,7 @@
                 </div>
             </div>
         </template>
-        <v-footer app absolute class="align-center">
+        <v-footer app absolute class="align-center" border="t-sm">
             <v-tooltip location="top">
                 <template #activator="{ props }">
                     <v-btn v-bind="props" icon="mdi-refresh" @click="loadIssues()" />
@@ -49,7 +49,8 @@
                 </div>
             </div>
         </v-footer>
-        <IssueModal v-model="showIssueModal" :issue="selectedIssue" @confirm-vote="confirmVote" />
+        <IssueModal v-model="showIssueModal" :issue="selectedIssue" @confirm-vote="confirmVote"
+            @end:voting="loadIssues()" />
     </div>
 </template>
 
