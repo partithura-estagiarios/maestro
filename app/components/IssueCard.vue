@@ -81,7 +81,7 @@ const issueLinkColor = computed(() => {
 })
 
 const tooltipText = computed(() => {
-    return votedValue.value?.vote ? `Você votou ${votedValue.value.vote} nessa task.` : 'Task sem seu voto.'
+    return votedValue.value?.vote != null ? `Você votou ${votedValue.value.vote} nessa task.` : 'Task sem seu voto.'
 })
 
 const votedValue = computed(() => {
@@ -127,35 +127,7 @@ function viewIssue() {
     emits("click", prop.issue)
 }
 
-function parseColor(colorStr = '') {
-    // Passo 1: Verificar se é um valor hexadecimal (com ou sem #)
-    let hex = colorStr.trim();
 
-    // Se não começar com #, adicionamos temporariamente para validação
-    if (!hex.startsWith('#')) {
-        hex = '#' + hex;
-    }
-
-    // Testa se é um valor hexadecimal válido (6 dígitos)
-    if (/^#([A-Fa-f0-9]{6})$/.test(hex)) {
-        return hex.toUpperCase();
-    }
-
-    // Passo 2: Tentar converter nome de cor para hexadecimal
-    const ctx = document.createElement("canvas").getContext("2d");
-    ctx.fillStyle = colorStr.trim();
-
-    // Obter o estilo computado após definir a cor
-    const computedColor = ctx.fillStyle;
-
-    // Verificar se o valor resultante é um hexadecimal
-    if (/^#([A-Fa-f0-9]{6})$/.test(computedColor)) {
-        return computedColor.toUpperCase();
-    }
-
-    // Caso não seja uma cor válida
-    return null;
-}
 </script>
 <style lang="scss" scoped>
 .issue-number {

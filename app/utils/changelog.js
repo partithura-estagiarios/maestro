@@ -8,6 +8,8 @@ const changelog = [
   "Adicionado opção de sobrescrever o valor da votação;",
   "Formatação do estilo do modal para manter o tamanho dos botões;",
   "Corrigido bug que não recarregava itens após a votação;",
+  "Mudança no modal: adicionado tags;",
+  "Correção de bug que não exibia nota 0 na tooltip;",
 ];
 
 export { changelog };

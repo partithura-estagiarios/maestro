@@ -4,17 +4,33 @@
         <v-card>
             <v-toolbar>
                 <template #title>
-                    <span class="issue-link">
+                    <v-tooltip>
+                        <template #activator="activator">
+                            <span v-bind="activator.props" class="issue-title">
+                                <span class="mr-2" v-html="title" />
+                            </span>
+                        </template>
                         <span class="mr-2" v-html="title" />
-                    </span>
+                    </v-tooltip>
                 </template>
                 <template #append>
-                    <span class="issue-link">
-                        <a :href="issueURL" target="_blank" :class="issueLinkColor" class="mr-4">{{
-                            issue.content.repository.name }}/#{{
-                                issue.content.number
-                            }}</a>
-                    </span>
+                    <div>
+                        <div class="issue-link">
+                            <a :href="issueURL" target="_blank" :class="issueLinkColor" class="mr-4">{{
+                                issue.content.repository.name }}/#{{
+                                    issue.content.number
+                                }}</a>
+                        </div>
+                        <div>
+                            <v-chip class="mx-1" :color="parseColor(props.issue?.content?.type?.color)"
+                                variant="outlined" density="compact">{{
+                                    props.issue?.content?.type?.name }}</v-chip>
+                            <v-chip v-for="label in props.issue.content.labels" :key="label.id" class="mx-1"
+                                density="compact" :color="setColor(label.color)" variant="outlined">{{ label.name
+                                }}</v-chip>
+
+                        </div>
+                    </div>
                     <v-icon icon="mdi-close" @click="closeModal" />
                 </template>
             </v-toolbar>
@@ -143,6 +159,10 @@ function confirmVote() {
     }
 }
 
+function setColor(c) {
+    return parseColor(c)
+}
+
 function savePoints() {
     loading.value = true;
     if (isReady.value || finalValueRef.value != null) {
@@ -195,8 +215,12 @@ watch(model, async (n, o) => {
 })
 </script>
 <style lang="scss">
+.issue-title {
+    font-size: 1.5rem;
+}
+
 .issue-link {
-    font-size: 1.75rem;
+    text-align: end;
 
     a {
         text-decoration: none;
