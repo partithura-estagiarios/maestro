@@ -3,7 +3,6 @@ import mongoose from "mongoose";
 import ErrorLog from "../../models/error.model";
 import Issue from "../../models/issue.model";
 import { env } from "~~/server/support/env";
-import { triggerSSEEvent } from "../../utils/sse";
 
 export default defineEventHandler(async (event) => {
   // Obter o token do header Authorization
@@ -16,22 +15,13 @@ export default defineEventHandler(async (event) => {
   const octokit = new Octokit({
     auth: githubToken,
   });
-
-  const body = await readBody(event);
-  const {
-    projectNumber,
-    org,
-    itemId,
-    q = "",
-    paginationSize = 10,
-    after,
-    before,
-  } = body;
+  const query = getQuery(event);
+  const { project_number, org, item_id } = query;
   const headers = {
     "X-GitHub-Api-Version": "2022-11-28",
   };
 
-  if (!projectNumber || !org) {
+  if (!project_number || !org) {
     throw createError({
       statusCode: 400,
       message: "Organização e número do projeto são obrigatórios.",
@@ -39,23 +29,15 @@ export default defineEventHandler(async (event) => {
   }
   try {
     const response = await octokit.request(
-      `GET /orgs/{org}/projectsV2/{project_number}/items`,
+      `GET /orgs/{org}/projectsV2/{project_number}/items/{item_id}`,
       {
-        project_number: projectNumber,
+        project_number: project_number,
         org: org,
-        itemId: itemId,
+        item_id: item_id,
         headers: headers,
-        q: q,
-        per_page: paginationSize,
-        after,
-        before,
       }
     );
     const mongoResponse = await Issue.find();
-    await triggerSSEEvent("sse:data-update", {
-      message: new Date().toLocaleString(),
-      details: body,
-    });
 
     if (response.errors) {
       throw new Error(response.errors[0].message);
@@ -68,17 +50,16 @@ export default defineEventHandler(async (event) => {
     const responseHeaders = response.headers;
 
     return {
-      issues: issues,
-      mongo: mongoResponse,
+      issue: issues,
       headers: responseHeaders,
     };
   } catch (error) {
     console.error(error);
     const newError = new ErrorLog({
       apiEndpoint: "gitIssues/post",
-      gitEndpoint: "/orgs/{org}/projectsV2/{project_number}/items",
+      gitEndpoint: "/orgs/{org}/projectsV2/{project_number}/items/{item_id}",
       method: "GET",
-      requestBody: body,
+      requestParams: params,
       errorMessage: error.message,
       errorDetails: error,
       username: username, // Optional

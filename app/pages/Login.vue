@@ -1,66 +1,47 @@
 <template>
-    <v-card :loading="loading" width="300px" title="Faça login via Fine-Grained Token" elevation="12">
-        <div>
-            <span class="text-center text-grey-darken-1 font-weight-thin text-subtitle-2">
-                {{ name }} v{{ version }}
-            </span>
-        </div>
-        <v-card-text>
-            <v-text-field v-model="token" :loading="loading" label="GitHub Fine-Grained Token" type="password" required
-                clearable hint="Cole seu token de acesso do GitHub" persistent-hint :error="error" />
-        </v-card-text>
-        <v-card-actions>
-            <v-btn :disabled="loading || invalid" block text="Login com GitHub" @click="login" />
-        </v-card-actions>
-        <ErrorBar v-model="showErrorBar" :error-data="errorData" timeout="10000" />
-    </v-card>
+    <v-col cols="12" sm="8" md="6" lg="5" xl="4" xxl="2">
+        <v-sheet class="pa-4">
+            <h3 class="mb-4">Maestro</h3>
+            <v-form v-model="isValid" @submit.prevent="testLogin()" class="text-center">
+                <v-text-field class="text-center" :loading="loading" label="Token de acesso" type="password"
+                    v-model="token" prepend-inner-icon="mdi-content-paste" @click:prepend-inner="pasteContent()"
+                    :rules="validationRules" />
+                <div class="mb-3">
+                    <a href="https://github.com/settings/tokens/new" target="_blank">Não tem um token?</a>
+                </div>
+                <v-btn text="acessar" block size="x-large" type="submit" :disabled="!isValid" :loading="loading"
+                    variant="tonal" />
+            </v-form>
+        </v-sheet>
+    </v-col>
 </template>
-
 <script setup>
-// Define o layout "auth"
-import { useAppStore } from '#imports'
-import { firstCase, appPkg as pkg } from '../utils'
 definePageMeta({
-    layout: 'auth'
+    layout: 'auth',
+    name: 'Login'
 })
-const version = pkg.version
-
-const name = firstCase(pkg.name)
-const token = ref('')
-const error = ref(false)
-const router = useRouter()
-const appStore = useAppStore()
-const loading = ref(false)
-
-const showErrorBar = ref(false)
-const errorData = ref()
-
-const invalid = computed(() => {
-    return !token.value
+const userStore = useUserStore()
+const token = ref()
+const isValid = ref(false)
+const loading = computed(() => {
+    return userStore.getLoading
 })
-
-const login = () => {
-    loading.value = true
-    error.value = false
-    // Salva o token no cookie
-    const githubToken = useCookie('token', { maxAge: 60 * 60 * 24 * 7 })
-    githubToken.value = token.value
-    appStore.updateCurrentToken(token.value)
-    appStore.updateUser(token.value)
-        .then(valid => {
-            if (!valid.id) {
-                error.value = true
-            } else {
-                // Redireciona para dashboard
-                router.push('/dashboard')
-            }
+const validationRules = computed(() => {
+    return [
+        val => val != null ? true : 'Token é obrigatório'
+    ]
+})
+function testLogin() {
+    userStore.login(token.value)
+        .then(r => {
+            const cookie = useCookie('token', {})
+            cookie.value = token.value
+            navigateTo('/')
         })
-        .catch(e => {
-            errorData.value = e
-            showErrorBar.value = true
+        .catch(err => {
         })
-        .finally(() => {
-            loading.value = false
-        })
+}
+async function pasteContent() {
+    token.value = await navigator.clipboard.readText()
 }
 </script>

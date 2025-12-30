@@ -23,6 +23,17 @@ export default defineNuxtPlugin((nuxtApp) => {
       VNumberInput: {
         variant: "outlined",
       },
+      VSheet: {
+        border: "sm",
+      },
+      VChip: {
+        variant: "outlined",
+        density: "compact",
+      },
+      VBtn: {
+        variant: "outlined",
+        tile: true,
+      },
     },
     styles: {
       configFile: "../assets/settings.scss",

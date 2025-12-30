@@ -1,156 +1,112 @@
-<!-- eslint-disable vue/no-v-html -->
 <template>
-    <v-col cols="12" sm="12" md="6" lg="4" xl="3" xxl="2">
-        <v-tooltip location="top center" theme="dark">
-            <template #activator="activator">
-                <v-card v-bind="activator.props" :color="cardColor" variant="outlined" max-height="250px" height="100%"
-                    @click="viewIssue">
-                    <v-toolbar :color="topBarColor" density="compact">
-                        <template #prepend>
-                            <v-chip class="ml-3" :color="parseColor(prop.issue?.content?.type?.color)"
-                                variant="outlined" density="compact">{{
-                                    prop.issue?.content?.type?.name }}</v-chip>
-                        </template>
-                        <v-toolbar-title class="pr-4 text-truncate">
-                            <v-tooltip :text="rawIssueTitle" location="top">
-                                <template #activator="{ props }">
-                                    <span v-bind="props" v-html="issueTitle" />
-                                </template>
-                            </v-tooltip>
-                        </v-toolbar-title>
-                    </v-toolbar>
-                    <v-card-text class="card-description text-white">
-                        <div class="px-3" v-html="mdBody" />
-                    </v-card-text>
-                    <v-card-actions class="px-0 pb-0 mx-0">
-                        <v-toolbar :color="bottomBarColor" density="compact" class="px-2 py-0">
-                            <v-chip v-for="label in prop.issue.content.labels" :key="label.id" class="mx-1"
-                                density="compact" :color="parseColor(label.color)" variant="outlined">{{ label.name
-                                }}</v-chip>
-                            <v-spacer />
-                            <a class="issue-number" :class="issueLinkColor" @click.stop="handleClick" :href="issueLink"
-                                target="_blank">
-                                {{ prop.issue?.content?.repository?.name }}/<span>#{{ prop.issue?.content?.number
-                                    }}</span>
-                            </a>
-                        </v-toolbar>
-                    </v-card-actions>
-                </v-card>
+    <v-card class="animated" variant="outlined" :color="issueCardColor" height="200px" @click.stop="clickIssue()">
+        <v-toolbar :color="issueToolbarColor" density="compact">
+            <template #prepend>
+                <v-chip class="ml-3" color="yellow">Task</v-chip>
             </template>
-            <h2>{{ tooltipText }}</h2>
-        </v-tooltip>
-    </v-col>
+            <template #title>
+                <span v-html="computedTitle" />
+            </template>
+        </v-toolbar>
+        <v-card-text class="issue-card-text">
+            <div v-html="computedBody" />
+        </v-card-text>
+        <v-toolbar density="compact" class="px-2">
+            <a target="_blank" :href="issueLink"><span :style="`color: ${repositoryColor}`">{{ issue.repository }}/<span
+                        class="text-grey">#{{ issue.number
+                        }}</span></span></a>
+            <v-spacer />
+            <v-tooltip text="Visualizar issue" location="bottom start" open-delay="500">
+                <template #activator="activator">
+                    <v-icon v-bind="activator.props" @click.stop="openIssue" icon="mdi-arrow-right" />
+                </template>
+            </v-tooltip>
+        </v-toolbar>
+        <IssueModal v-model="showIssueModal" :issue="props.issue" @select="clickIssue" />
+    </v-card>
 </template>
 <script setup>
-const appStore = useAppStore()
-const config = useRuntimeConfig();
-
-const { organizationName } = config.public;
-const emits = defineEmits(['click'])
-const prop = defineProps({
+const organization = computed(() => {
+    return 'partithura'
+})
+const repository = computed(() => {
+    return props.issue.repository
+})
+const issueNumber = computed(() => {
+    return props.issue.number
+})
+const repositoryColor = computed(() => {
+    return '#70FF90'
+})
+const computedTitle = computed(() => {
+    return parseGitMD(props.issue.title)
+})
+const computedBody = computed(() => {
+    return parseGitMD(props.issue.body)
+})
+const issueCardColor = computed(() => {
+    if (props.selected) {
+        return 'primary'
+    }
+    return props.issue.dificulty ? 'green-darken-3' : ''
+})
+const issueToolbarColor = computed(() => {
+    if (props.selected) {
+        return 'primary'
+    }
+    return props.issue.dificulty ? 'green-darken-4' : ''
+})
+const showIssueModal = ref(false)
+const emits = defineEmits(["click"])
+const props = defineProps({
     issue: {
         type: Object,
-        default: () => { }
+        required: true
     },
-    isSelected: {
+    selected: {
         type: Boolean,
         default: false
     }
 })
 const issueLink = computed(() => {
-    return `https://github.com/${organizationName}/${prop.issue?.content?.repository?.name}/issues/${prop.issue?.content?.number}`
+    return `https://github.com/${organization.value}/${repository.value}/issues/${issueNumber.value}`
 })
-const mdBody = computed(() => {
-
-    return parseGitMD(prop.issue?.content?.body, prop.issue?.content?.repository?.name)
-})
-
-function handleClick(e) {
-    e
+function clickIssue() {
+    emits('click', props.issue)
 }
-
-const issueLinkColor = computed(() => {
-    const name = prop.issue?.content?.repository?.name
-    if (name.includes('frontend')) {
-        return 'frontend-text'
-    }
-    if (name.includes('backend')) {
-        return 'backend-text'
-    }
-    return 'unknown-text'
-})
-
-const tooltipText = computed(() => {
-    return votedValue.value?.vote != null ? `Você votou ${votedValue.value.vote} nessa task.` : 'Task sem seu voto.'
-})
-
-const votedValue = computed(() => {
-    return prop.issue?.votes?.find(vote => {
-        return vote.user?.id == appStore.getCurrentUserInfo.id
-    })
-})
-
-const cardColor = computed(() => {
-    if (!prop.isSelected) {
-        return prop.issue.votes.findIndex(vote => {
-            return vote.user.id == appStore.getCurrentUserInfo.id
-        }) >= 0 ? 'green-darken-4' : 'grey-darken-2'
-    }
-    return prop.isSelected ? 'blue-grey-darken-2' : 'grey-darken-4'
-})
-const topBarColor = computed(() => {
-    if (!prop.isSelected) {
-        return prop.issue.votes.findIndex(vote => {
-            return vote.user.id == appStore.getCurrentUserInfo.id
-        }) >= 0 ? 'green-darken-4' : 'grey-darken-4'
-    }
-    return prop.isSelected ? 'blue-grey-darken-2' : 'grey-darken-4'
-})
-const bottomBarColor = computed(() => {
-    if (!prop.isSelected) {
-        return prop.issue.votes.findIndex(vote => {
-            return vote.user.id == appStore.getCurrentUserInfo.id
-        }) >= 0 ? 'grey-darken-4' : 'grey-darken-4'
-    }
-    return prop.isSelected ? 'blue-grey-darken-4' : 'grey-darken-4'
-})
-
-const issueTitle = computed(() => {
-
-    return parseGitMD(prop.issue?.fields[0]?.value?.html, prop.issue?.content?.repository?.name)
-})
-const rawIssueTitle = computed(() => {
-    return prop.issue?.fields[0]?.value?.raw
-})
-
-function viewIssue() {
-    emits("click", prop.issue)
+function openIssue() {
+    //mostrar issue em modal
+    showIssueModal.value = true
 }
-
-
 </script>
 <style lang="scss" scoped>
-.issue-number {
-    font-weight: 800;
-    font-size: 0.875rem;
+.issue-card-text {
+    max-height: 102px;
+    overflow-y: scroll;
+}
+
+::-webkit-scrollbar {
+    width: 6px;
+}
+
+::-webkit-scrollbar-track {
+    border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb {
+    border-radius: 3px;
+
+}
+
+a {
     text-decoration: none;
 
     span {
-        color: rgb(128, 128, 128);
+        color: white;
     }
-}
 
-.card-description {
-    height: 94px;
-    display: -webkit-box;
-    -webkit-box-orient: vertical;
-    -webkit-line-clamp: 4;
-    line-clamp: 4;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
-.selected {
-    color: white;
+    :hover {
+        text-decoration: underline;
+    }
 }
 </style>

@@ -1,5 +1,4 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
-import type { ViteConfig } from "nuxt/schema";
 import vuetify from "vite-plugin-vuetify";
 import { env } from "./server/support/env";
 
@@ -10,12 +9,13 @@ const addHook = (config: Readonly<ViteConfig>): void => {
   config.plugins.push(
     vuetify({
       autoImport: true,
-    })
+    }),
   );
 };
 
 export default defineNuxtConfig({
   compatibilityDate: "2025-07-15",
+  ssr: false,
   devtools: { enabled: true },
   build: {
     transpile: ["vuetify"],
@@ -37,6 +37,12 @@ export default defineNuxtConfig({
     "@mdi/font/css/materialdesignicons.min.css", // Optional: Material Design Icons
     "~/assets/github-markdown.css", //github markdonw
   ],
+  nitro: {
+    experimental: {
+      websocket: true,
+      wasm: true,
+    },
+  },
   devServer: {
     port: 3000, // You can specify a different port if needed
     host: "0.0.0.0", // This makes the server accessible from any IP address on your network

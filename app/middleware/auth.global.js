@@ -1,43 +1,44 @@
-import { useAppStore } from "#imports";
-let appStore;
-
 export default defineNuxtRouteMiddleware((to) => {
-  //Criar appStore caso ainda não tenha sido instanciada
-  if (!appStore) {
-    appStore = useAppStore();
-  }
-
-  //pega o token dos cookies e valida
-  const token = useCookie("token").value;
-
-  //página de login com acesso público
-  const publicPages = ["/login", "/"];
-
-  appStore
-    .checkToken(token)
-    .then((isValidToken) => {
-      //caso não consiga validar o token acessando uma página privada, limpa o token e navega para login
-      if (!isValidToken && !publicPages.includes(to.path)) {
-        appStore.logout();
-        return navigateTo("/login");
+  const userStore = useUserStore();
+  const token = useCookie("token");
+  const publicPages = ["/login"];
+  if (publicPages.includes(to.path)) {
+    if (token.value) {
+      userStore
+        .login(token.value)
+        .then((r) => {
+          if (publicPages.includes(to.path)) {
+            return navigateTo("/");
+          }
+          return;
+        })
+        .catch((err) => {
+          navigateTo("/login");
+        });
+    } else {
+      return;
+    }
+  } else {
+    if (!token.value) {
+      //chamar api para verificar o token
+      if (publicPages.includes(to.path)) {
+        return;
       }
-
-      // if (!token && !publicPages.includes(to.path)) {
-      //   appStore.logout()
-      //   return navigateTo("/login");
-      // }
-
-      // if (isValidToken && !appStore.getCurrentUserInfo.login) {
-      //   appStore.logout();
-      //   return navigateTo("/login");
-      // }
-
-      if (isValidToken && publicPages.includes(to.path)) {
-        return navigateTo("/dashboard");
-      }
-    })
-    .catch(() => {
-      appStore.logout();
       return navigateTo("/login");
-    });
+    } else if (!userStore.getUser.token) {
+      userStore
+        .login(token.value)
+        .then((r) => {
+          if (publicPages.includes(to.path)) {
+            return navigateTo("/");
+          }
+          return;
+        })
+        .catch((err) => {
+          return navigateTo("/login");
+        });
+    } else {
+      return;
+    }
+  }
 });

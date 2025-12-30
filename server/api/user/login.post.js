@@ -58,6 +58,10 @@ export default defineEventHandler(async (event) => {
           login,
           token,
           name,
+          avatar_url: userResponse.avatar_url,
+          isManagement: teamResponse
+            ? formatTeamResponse(teamResponse.data)
+            : false,
           prefs: {
             items_per_page_option: 0,
             only_filtered_items: false,
@@ -76,6 +80,7 @@ export default defineEventHandler(async (event) => {
     return {
       id: userResponse.id,
       login: userResponse.login,
+      token: token,
       name: userResponse.name,
       email: userResponse.email,
       avatar_url: userResponse.avatar_url,

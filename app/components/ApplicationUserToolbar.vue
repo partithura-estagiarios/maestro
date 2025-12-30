@@ -1,7 +1,7 @@
 <template>
     <v-app-bar elevation="8" density="compact" border="b-sm">
         <v-app-bar-title>
-            <v-btn size="large" slim class="d-flex align-center" @click="goToRoute('/dashboard')">
+            <v-btn size="large" slim class="d-flex align-center" @click="goToRoute('/')">
                 <LogoIcon size="42px" />
                 <span class="ml-4">Maestro</span>
             </v-btn>
@@ -34,24 +34,27 @@
                     <v-list-item v-if="isManagement" @click="goToAdminPage">
                         <v-list-item-title>Configurações</v-list-item-title>
                     </v-list-item>
+                    <v-list-item @click="registerTelegram">
+                        <v-list-item-title>Ativar notificações</v-list-item-title>
+                    </v-list-item>
                     <v-list-item @click="logout">
                         <v-list-item-title>Logout</v-list-item-title>
                     </v-list-item>
                 </v-list>
             </v-menu>
         </template>
+        <!-- <TelegramNotification v-model="showTelegramModal" /> -->
     </v-app-bar>
 </template>
 <script setup>
 import { firstCase, appPkg as pkg } from '../utils'
-import { useAppStore } from '#imports'
 const version = pkg.version
 
 const name = firstCase(pkg.name)
 
-const appStore = useAppStore()
+const userStore = useUserStore()
 
-const userImageUrl = computed(() => appStore.getCurrentUserInfo.avatar_url)
+const userImageUrl = computed(() => userStore.getUser.avatar_url)
 
 const userMenu = ref([
     {
@@ -60,14 +63,18 @@ const userMenu = ref([
     }
 ])
 
+const showTelegramModal = ref(false)
+
 
 const isManagement = computed(() => {
-    return appStore.getCurrentUserInfo.isManagement
+    return userStore.getUser.isManagement
 })
 
 const logout = () => {
     // Remove o token
-    appStore.logout()
+    userStore.logout()
+    const cookie = useCookie('token', {})
+    cookie.value = null
 
     // Redireciona para login
     navigateTo('/login')
@@ -79,6 +86,9 @@ function goToAdminPage() {
 }
 function goToRoute(r) {
     navigateTo(r)
+}
+function registerTelegram() {
+    showTelegramModal.value = true
 }
 
 </script>

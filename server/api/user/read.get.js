@@ -6,7 +6,7 @@ export default defineEventHandler(async (event) => {
   await mongoose.connect(env.MONGODB_CONNECTION_STRING);
   const { id } = getQuery(event);
   try {
-    const result = await User.findOne({ id });
+    const result = id ? await User.findOne({ id }) : await User.find();
     return result;
   } catch (error) {
     return `Não foi possível executar a operação: ${error.message}`;

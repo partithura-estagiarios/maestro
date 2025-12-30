@@ -1,29 +1,58 @@
 <template>
-    <div class="loader">
-        <div>
-            <h3 class="text-center">Redirecionando...</h3>
-            <h5 class="text-center text-grey-darken-1 font-weight-thin text-subtitle-2">
-                {{ name }} v{{ version }}
-            </h5>
-        </div>
-    </div>
+  <v-row
+    align="center"
+    justify="center"
+  >
+    <v-col cols="12">
+      <h2 class="text-center">Selecione uma opção:</h2>
+    </v-col>
+    <v-col
+      cols="12"
+      md="6"
+      lg="4"
+      xl="3"
+      xxl="2"
+    >
+      <v-btn
+        to="/projects_"
+        height="120px"
+        block
+        size="x-large"
+      >
+        <div class="px-4 py-2">Projetos</div>
+      </v-btn>
+    </v-col>
+    <v-col
+      cols="12"
+      md="6"
+      lg="4"
+      xl="3"
+      xxl="2"
+    >
+      <v-btn
+        to="/ChatRoom"
+        height="120px"
+        block
+        size="x-large"
+      >
+        <v-badge
+          location="top right"
+          color="primary"
+          content="4"
+        >
+          <div class="px-4 py-2">Sala de votação</div>
+        </v-badge>
+      </v-btn>
+    </v-col>
+  </v-row>
 </template>
 <script setup>
-import { firstCase, appPkg as pkg } from '../utils'
-const version = pkg.version
-
-const name = firstCase(pkg.name)
+definePageMeta({
+  layout: "app",
+  name: "Dashboard",
+});
+const navigationStore = useNavigationStore();
 onMounted(() => {
-    navigateTo('/login')
-})
+  navigationStore.setBreadcrumbs([]);
+});
 </script>
-<style lang="scss" scoped>
-.loader {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    align-content: center;
-    height: 100vh;
-    width: 100vw;
-}
-</style>
