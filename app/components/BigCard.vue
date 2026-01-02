@@ -1,43 +1,57 @@
 <template>
-    <div @click="switchCard" class="card-container" :class="{ selected: isSelected }"
-        :style="isSelected ? `background-color: ${cardColor};` : ''">
-        <div class="mini-card">
-            <div>
-                <h4 class="text-center">{{ computedCardValue }}</h4>
-                <h5 class="text-center">{{ cardTooltip }}</h5>
+    <v-col
+        cols="6"
+        sm="3"
+        md="3"
+        lg="1"
+        xl="1"
+        xxl="1"
+        class="">
+        <div
+            class="card-container"
+            :class="{ selected: isSelected }"
+            :style="isSelected ? `background-color: ${cardColor};` : ''"
+            @click="switchCard">
+            <div class="mini-card">
+                <div>
+                    <h4 class="text-center">{{ computedCardValue }}</h4>
+                    <h5 class="text-center">{{ cardTooltip }}</h5>
+                </div>
             </div>
         </div>
-    </div>
+    </v-col>
 </template>
 <script setup>
-const emits = defineEmits(["cardSelected", "cardUnselected"])
+const emits = defineEmits(["cardSelected", "cardUnselected"]);
 const props = defineProps({
     cardValue: {
         type: [String, Number],
-        default: ''
+        default: "",
     },
     cardSelected: {
         type: [String, Number],
-        default: ''
+        default: "",
     },
     cardTooltip: {
         type: String,
-        default: 'Sem valor definido'
+        default: "Sem valor definido",
     },
     cardColor: {
         type: String,
-        default: '#FFFFFF'
-    }
-})
+        default: "#FFFFFF",
+    },
+});
 const isSelected = computed(() => {
-    return props.cardSelected == props.cardValue
-})
+    return props.cardSelected == props.cardValue;
+});
 const computedCardValue = computed(() => {
-    return props.cardValue
-})
+    return props.cardValue;
+});
 
 function switchCard() {
-    isSelected.value ? emits("cardUnselected", props.cardValue) : emits("cardSelected", props.cardValue)
+    isSelected.value
+        ? emits("cardUnselected", props.cardValue)
+        : emits("cardSelected", props.cardValue);
 }
 </script>
 <style lang="scss" scoped>
@@ -59,7 +73,7 @@ $innerCardBorderWidth: calc($cardOffset / 2);
     margin: 0;
     background-color: #ffffff;
     transition: 0.32s;
-    transform: scaleX($cardScale) scaleY($cardScale );
+    transform: scaleX($cardScale) scaleY($cardScale);
     display: flex;
     align-items: center;
     align-content: center;

@@ -82,149 +82,16 @@
                         v-if="showSelectionScreen"
                         @back="addIssues" />
                     <template v-else>
-                        <v-sheet> Imagine uma Task aqui... </v-sheet>
+                        <v-sheet>
+                            <div class="markdown-body" />
+                        </v-sheet>
                         <v-sheet class="pa-4">
-                            <v-row
-                                justify="space-evenly"
-                                justify-xxl="center"
-                                justify-xl="center">
-                                <v-col
-                                    cols="6"
-                                    sm="3"
-                                    md="3"
-                                    lg="1"
-                                    xl="1"
-                                    xxl="1"
-                                    class="">
-                                    <BigCard
-                                        :card-value="0"
-                                        :card-selected="voteValue"
-                                        @card-selected="setSelectedCard"
-                                        @card-unselected="deselectCard" />
-                                </v-col>
-                                <v-col
-                                    cols="6"
-                                    sm="3"
-                                    md="3"
-                                    lg="1"
-                                    xl="1"
-                                    xxl="1"
-                                    class="">
-                                    <BigCard
-                                        :card-value="1"
-                                        :card-selected="voteValue"
-                                        @card-selected="setSelectedCard"
-                                        @card-unselected="deselectCard" />
-                                </v-col>
-                                <v-col
-                                    cols="6"
-                                    sm="3"
-                                    md="3"
-                                    lg="1"
-                                    xl="1"
-                                    xxl="1"
-                                    class="">
-                                    <BigCard
-                                        :card-value="2"
-                                        :card-selected="voteValue"
-                                        @card-selected="setSelectedCard"
-                                        @card-unselected="deselectCard" />
-                                </v-col>
-                                <v-col
-                                    cols="6"
-                                    sm="3"
-                                    md="3"
-                                    lg="1"
-                                    xl="1"
-                                    xxl="1"
-                                    class="">
-                                    <BigCard
-                                        :card-value="3"
-                                        :card-selected="voteValue"
-                                        @card-selected="setSelectedCard"
-                                        @card-unselected="deselectCard" />
-                                </v-col>
-                                <v-col
-                                    cols="6"
-                                    sm="3"
-                                    md="3"
-                                    lg="1"
-                                    xl="1"
-                                    xxl="1"
-                                    class="">
-                                    <BigCard
-                                        :card-value="5"
-                                        :card-selected="voteValue"
-                                        @card-selected="setSelectedCard"
-                                        @card-unselected="deselectCard" />
-                                </v-col>
-                                <v-col
-                                    cols="6"
-                                    sm="3"
-                                    md="3"
-                                    lg="1"
-                                    xl="1"
-                                    xxl="1"
-                                    class="">
-                                    <BigCard
-                                        :card-value="8"
-                                        :card-selected="voteValue"
-                                        @card-selected="setSelectedCard"
-                                        @card-unselected="deselectCard" />
-                                </v-col>
-                                <v-col
-                                    cols="6"
-                                    sm="3"
-                                    md="3"
-                                    lg="1"
-                                    xl="1"
-                                    xxl="1"
-                                    class="">
-                                    <BigCard
-                                        :card-value="12"
-                                        :card-selected="voteValue"
-                                        @card-selected="setSelectedCard"
-                                        @card-unselected="deselectCard" />
-                                </v-col>
-                                <v-col
-                                    cols="6"
-                                    sm="3"
-                                    md="3"
-                                    lg="1"
-                                    xl="1"
-                                    xxl="1"
-                                    class="">
-                                    <BigCard
-                                        :card-value="21"
-                                        :card-selected="voteValue"
-                                        @card-selected="setSelectedCard"
-                                        @card-unselected="deselectCard" />
-                                </v-col>
-                                <v-col
-                                    cols="6"
-                                    sm="3"
-                                    md="3"
-                                    lg="1"
-                                    xl="1"
-                                    xxl="1"
-                                    class="">
-                                    <BigCard
-                                        card-value="?"
-                                        card-color="#FFFF55"
-                                        :card-selected="voteValue"
-                                        @card-selected="setSelectedCard"
-                                        @card-unselected="deselectCard" />
-                                </v-col>
-                            </v-row>
-                            <v-row
-                                align-content="center"
-                                justify="center">
-                                <v-btn
-                                    size="x-large"
-                                    @click="chooseCard"
-                                    >Votar</v-btn
-                                >
-                            </v-row>
+                            <CardDeck
+                                :card-selected="voteValue"
+                                :cards="computedCards"
+                                @card-selected="setSelectedCard"
+                                @card-unselected="deselectCard"
+                                @choose-card="chooseCard" />
                             <v-row
                                 v-if="isChart"
                                 align="center"
@@ -293,6 +160,48 @@ const chartOptions = ref({
 
 const activeIssue = ref();
 const issues = ref([]);
+
+const computedCards = computed(() => {
+    //carregar da API depois
+    return [
+        {
+            value: 0,
+            tooltip: "Sem esforço significativo",
+        },
+        {
+            value: 1,
+            tooltip: "Até 1h de esforço",
+        },
+        {
+            value: 2,
+            tooltip: "Entre 1h e 2h de esforço",
+        },
+        {
+            value: 3,
+            tooltip: "Entre 1h:30m e 4h de esforço",
+        },
+        {
+            value: 5,
+            tooltip: "Entre 3h:30m e 8h de esforço",
+        },
+        {
+            value: 8,
+            tooltip: "Entre 7h e 14h de esforço",
+        },
+        {
+            value: 13,
+            tooltip: "Entre 12h e 24h de esforço",
+        },
+        {
+            value: 21,
+            tooltip: "Mais que 24h (quebrar)",
+        },
+        {
+            value: "?",
+            tooltip: "Não tenho certeza",
+        },
+    ];
+});
 
 const isManagement = computed(() => {
     return userStore.getUser.isManagement;
