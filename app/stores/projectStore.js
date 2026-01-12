@@ -31,7 +31,7 @@ export const useProjectStore = defineStore("projectStore", {
                 this.projects = response;
             } catch (error) {
                 logStore.createAlert({
-                    text: `Erro carregando projetos: ${error}`,
+                    text: error.data?.message,
                     title: "Erro de carregamento",
                     icon: "mdi-database-alert",
                 });
@@ -59,9 +59,12 @@ export const useProjectStore = defineStore("projectStore", {
                     },
                 });
                 this.activeProject = response;
+                this.projects.find((p) => {
+                    return p.number == this.activeProject.number;
+                }).config.cardDeck = response?.config?.cardDeck;
             } catch (error) {
                 logStore.createAlert({
-                    text: `Erro ao atualizar o projeto: ${error}`,
+                    text: error.data?.message,
                     title: "Erro de atualização",
                     icon: "mdi-database-alert",
                 });
@@ -84,19 +87,19 @@ export const useProjectStore = defineStore("projectStore", {
                 this.loading = true;
                 const response = await $fetch("/api/projects/create", {
                     method: "POST",
-                    body: project
+                    body: project,
                 });
                 this.projects.push(response);
             } catch (error) {
                 logStore.createAlert({
-                    text: error,
+                    text: error.data?.message,
                     title: "Erro ao salvar projeto:",
-                    icon: "mdi-content-save-alert"
+                    icon: "mdi-content-save-alert",
                 });
                 throw error;
             } finally {
                 this.loading = false;
             }
-        }
+        },
     },
 });

@@ -213,6 +213,7 @@ onMounted(() => {
     ]);
 });
 onBeforeMount(() => {
+    projectStore.fetchProjects();
     projectStore.setActiveProject(route.params.projectId);
 });
 </script>

@@ -4,8 +4,9 @@
             class="d-flex align-center"
             :to="props.route">
             <v-btn
+                class="mr-4"
                 :to="props.to"
-                icon="mdi-arrow-left"
+                :icon="props.hideButton ? 'mdi-home' : 'mdi-arrow-left'"
                 variant="text" />
             <v-icon
                 v-if="showConfigIcon"
@@ -34,6 +35,10 @@ const props = defineProps({
     title: {
         type: String,
         default: "",
+    },
+    hideButton: {
+        type: Boolean,
+        default: false,
     },
 });
 function handleConfigClick() {

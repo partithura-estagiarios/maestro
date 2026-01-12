@@ -2,7 +2,7 @@
     <v-row
         no-gutters
         dense>
-        <DefaultHeader to="/" />
+        <DefaultHeader :to="previousRoute" />
         <v-col cols="12">
             <v-row
                 no-gutters
@@ -99,6 +99,8 @@ definePageMeta({
     layout: "app",
     name: "Sala de Votação",
 });
+
+const projectStore = useProjectStore();
 const userStore = useUserStore();
 const cardStore = useCardStore();
 const navigationStore = useNavigationStore();
@@ -115,6 +117,23 @@ const statusBar = ref();
 const roomName = ref("");
 const activeIssue = ref();
 const issues = ref([]);
+const route = useRoute();
+
+const projectId = computed(() => {
+    return route.params.projectId;
+});
+const organizationId = computed(() => {
+    return route.params.organizationId;
+});
+const organizationName = computed(() => {
+    return "Partithura";
+});
+const projectName = computed(() => {
+    return projectStore.getActiveProject.name;
+});
+const previousRoute = computed(() => {
+    return `/rooms/${organizationId.value}`;
+});
 
 const usersWithVote = computed(() => {
     return users.value.map((u) => {
@@ -351,14 +370,29 @@ onBeforeUnmount(() => {
 onBeforeRouteLeave(() => {
     shutdown();
 });
+
 onMounted(() => {
     navigationStore.setBreadcrumbs([
         {
-            title: `Sala de Votação`,
+            title: `Salas`,
+            disabled: false,
+            to: `/rooms`,
+        },
+        {
+            title: `${organizationName.value}`,
+            disabled: false,
+            to: `/rooms/${organizationId.value}`,
+        },
+        {
+            title: `${projectName.value}`,
             disabled: true,
-            to: `/ChatRoom`,
+            to: `/rooms/${organizationId.value}/${projectId.value}`,
         },
     ]);
+});
+onBeforeMount(() => {
+    projectStore.fetchProjects();
+    projectStore.setActiveProject(route.params.projectId);
 });
 </script>
 <style lang="scss" scoped>

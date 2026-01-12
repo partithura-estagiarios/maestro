@@ -23,6 +23,7 @@ const cardStore = useCardStore();
 const configStore = useConfigStore();
 const logStore = useLogStore();
 const projectStore = useProjectStore();
+const organizationStore = useOrganizationStore();
 
 const hasData = ref(false);
 
@@ -32,6 +33,7 @@ onMounted(async () => {
         logStore.fetchChangeLog(),
         cardStore.fetchCards(),
         projectStore.fetchProjects(),
+        organizationStore.fetchOrganizations(),
     ]);
     hasData.value = true;
 });

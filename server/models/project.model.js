@@ -2,15 +2,23 @@ import mongoose from "mongoose";
 
 const projectSchema = new mongoose.Schema({
     number: { type: Number, required: true },
-    name: { type: String, required: true, default: "" },
-    query: { type: String },
-    isActive: { type: Boolean, default: false },
+    name: { type: String, required: true },
+    query: { type: String, default: "" },
+    isActive: { type: Boolean, default: true },
     config: {
         cardDeck: [{ type: mongoose.Schema.Types.ObjectId, ref: "Card" }],
         modules: [
-            { type: mongoose.Schema.Types.ObjectId, ref: "EffortModule" },
+            {
+                type: mongoose.Schema.Types.ObjectId,
+                ref: "EffortModule",
+            },
         ],
-        areas: [{ type: mongoose.Schema.Types.ObjectId, ref: "EffortArea" }],
+        areas: [
+            {
+                type: mongoose.Schema.Types.ObjectId,
+                ref: "EffortArea",
+            },
+        ],
     },
 });
 

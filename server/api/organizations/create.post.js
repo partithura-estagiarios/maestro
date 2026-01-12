@@ -1,18 +1,16 @@
 import mongoose from "mongoose";
-import Project from "~~/server/models/project.model";
+import Organization from "~~/server/models/organization.model";
 import { env } from "~~/server/support/env";
 
 export default defineEventHandler(async (event) => {
     await mongoose.connect(env.MONGODB_CONNECTION_STRING);
     const body = await readBody(event);
     try {
-        const newProject = new Project({
+        const newOrganization = new Organization({
             number: body.number,
-            query: body.query,
             name: body.name,
-            config: body.config,
         });
-        const response = await newProject.save();
+        const response = await newOrganization.save();
         return response;
     } catch (error) {
         throw createError({
