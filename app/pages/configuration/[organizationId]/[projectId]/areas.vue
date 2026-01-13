@@ -8,7 +8,7 @@
       >
         
         <v-col cols="6">
-          <h3>Cartas disponíveis:</h3>
+          <h3>Áreas disponíveis:</h3>
           <v-table class="areas-table">
             <thead>
               <tr>
@@ -166,6 +166,7 @@ const organizationAreas = computed({
       );
     });
   },
+  set() {}
 }); 
 
 const projectAreas = computed({
