@@ -83,7 +83,7 @@ export const useProjectStore = defineStore("projectStore", {
                 });
                 if (projectIndex < 0) {
                     logStore.createAlert({
-                        text: `O projeto com o id="${pid}" não foi encontrado para essa organização`,
+                        text: `O projeto com o número "${pid}" não foi encontrado para essa organização`,
                         title: "Projeto não encontrado:",
                         type: "warning",
                         icon: "mdi-note-alert",
