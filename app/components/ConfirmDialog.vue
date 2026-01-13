@@ -51,6 +51,10 @@ const props = defineProps({
         type: String,
         default: "Deseja excluír o item?",
     },
+    loading: {
+        type: Boolean,
+        default: false
+    }
 });
 function handleCancel() {
     emits("cancel");
