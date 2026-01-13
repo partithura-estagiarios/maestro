@@ -6,7 +6,7 @@
         dense
         justify="center"
       >       
-        <v-col cols="6" sm="12" md="6">
+        <v-col cols="12" sm="12" md="6">
           <h3>Áreas disponíveis:</h3>
           <v-table>
             <thead>
@@ -27,6 +27,7 @@
               }"
               item-key="value"
               tag="tbody"
+              :animation="200"
             >
               <tr 
                 v-for="area in organizationAreas" 
@@ -63,7 +64,7 @@
           </v-table>
         </v-col>
 
-        <v-col cols="6" sm="12" md="6">
+        <v-col cols="12" sm="12" md="6">
           <h3>Áreas incluídas no projeto:</h3>
           <v-table>
             <thead>
@@ -84,6 +85,7 @@
               }"
               item-key="value"
               tag="tbody"
+              :animation="200"
               @update="saveProjectAreas()"
               @add="saveProjectAreas()"
               @remove="saveProjectAreas()"
