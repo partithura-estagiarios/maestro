@@ -91,6 +91,7 @@ const organizationAreas = computed({
             );
         });
     },
+    set() {}
 });
 
 const projectAreas = computed({
