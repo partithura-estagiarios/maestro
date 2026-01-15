@@ -70,7 +70,7 @@ const items = computed(() => {
 
 const effort = computed(() => {
     return cardStore.getCards.filter((c) => {
-        return typeof Number(c.value) === "number" && !isNaN(c.value);
+        return !isNaN(Number(c.value));
     });
 });
 
