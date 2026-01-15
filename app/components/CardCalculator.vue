@@ -150,19 +150,3 @@ function findClosestValue(numero) {
     return ordenado[ordenado.length - 1];
 }
 </script>
-<style lang="scss" scoped>
-td,
-th {
-    text-align: center;
-    max-width: 160px;
-    min-width: 100px;
-    padding: 8px;
-    background-color: rgb(49, 49, 49);
-}
-table {
-    background-color: rgb(20, 20, 20);
-}
-.last-header {
-    background-color: rgb(27, 27, 27);
-}
-</style>
